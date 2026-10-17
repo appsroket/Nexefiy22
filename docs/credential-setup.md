@@ -101,6 +101,21 @@ Only the selected provider's key is required; setting the other one produces a w
 **Connectivity check:** lists one model via the Models API (`GET /v1/models`) — free and read-only.
 **Rotation:** create a new key → deploy it → confirm with the connectivity check → disable the old key in the console.
 
+### B2. Embeddings (Voyage AI)
+
+Selected: **Voyage AI `voyage-4`, 1024 dimensions** ([ADR-008](architecture-decisions.md)). Dashboard: <https://dashboard.voyageai.com/>
+
+| Variable | Exposure | Required for |
+|---|---|---|
+| `VOYAGE_API_KEY` | **server** | indexing knowledge and semantic search |
+
+The dimension is fixed by the database (`knowledge_chunks.embedding vector(1024)`) and by `src/lib/config/embeddings.ts`; a test fails if they disagree. Switching model or dimension requires a migration and re-embedding every chunk — vectors from different models are not comparable.
+
+Steps: create an organization in the Voyage dashboard, set a usage limit, create an API key per environment.
+
+**Connectivity check:** format only for now (the embedding client arrives with the knowledge phase).
+**Rotation:** create a new key → deploy → delete the old key.
+
 ## C. Email (Resend)
 
 Selected: **Resend** ([ADR-016](architecture-decisions.md)). Dashboard: <https://resend.com/api-keys>
@@ -171,7 +186,7 @@ None of these are required for the core app. Status of each candidate:
 | Scheduled-job authorization | Selected | [E7](#e7-scheduled-job-authorization) |
 | Notion | **Not selected** — no variables defined | — |
 | Telephony / voice agents | **Not selected** — post-MVP; provider decision pending | — |
-| Separate embeddings provider | **Pending** ADR-008 (knowledge phase) | — |
+| Embeddings (Voyage AI) | Selected (ADR-008) | [B2](#b2-embeddings-voyage-ai) |
 
 OAuth scopes below are the **planned minimum** for the MVP tools in [integration-architecture.md](integration-architecture.md). Re-verify each against the provider's current documentation when the adapter is built, and request only what the tools use.
 

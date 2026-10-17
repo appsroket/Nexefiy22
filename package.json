@@ -13,10 +13,13 @@
     "test:watch": "vitest",
     "env:check": "tsx scripts/check-env.ts",
     "env:check:connectivity": "tsx scripts/check-env.ts --connectivity",
-    "env:generate-key": "tsx scripts/generate-encryption-key.ts"
+    "env:generate-key": "tsx scripts/generate-encryption-key.ts",
+    "db:test:sync": "tsx scripts/db/sync-test-fixtures.ts",
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.135.0",
+    "@supabase/supabase-js": "2.118.0",
     "server-only": "0.0.1",
     "zod": "4.6.7"
   },

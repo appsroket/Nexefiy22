@@ -50,6 +50,7 @@ Exposure: **public** = inlined into browser bundles (must never be secret) · **
 | `AI_PROVIDER` | ai | server | no | no — default `anthropic` | `anthropic` \| `openai` |
 | `ANTHROPIC_API_KEY` | ai | server | **yes** | if provider is anthropic | `sk-ant-…` |
 | `OPENAI_API_KEY` | ai | server | **yes** | if provider is openai | `sk-…` |
+| `VOYAGE_API_KEY` | embeddings | server | **yes** | for knowledge indexing and search | — |
 | `RESEND_API_KEY` | email | server | **yes** | for email | `re_…` |
 | `EMAIL_FROM` | email | server | no | for email | `Name <a@domain>` or `a@domain` |
 | `STRIPE_SECRET_KEY` | billing | server | **yes** | for billing | `sk_/rk_` + `test_/live_` |

@@ -12,10 +12,10 @@ Start with [docs/product-vision.md](docs/product-vision.md) and [docs/system-arc
 
 ## Current status
 
-- **Phase:** 2 — Environment configuration and credentials (complete, pending review). Phase 1 (specification) complete.
-- **Code:** environment/credential foundation only — `src/lib/env` (validated config + feature gating), `src/lib/crypto` (customer-credential encryption), `src/lib/logging/redact.ts`, `src/lib/config/endpoints.ts`, `scripts/`, and Vitest tests. **No Next.js app, UI, routes, migrations, or integrations exist yet.** Do not claim otherwise.
-- **Supabase:** project `rnqrqconfbcrmszllxgu` (eu-north-1, Postgres 17) is empty — no tables, no migrations.
-- **Next phase:** Phase 3 — application scaffold, auth, organizations, RLS. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
+- **Phase:** 3 — Database schema, RLS, and security tests (complete, pending review). Phases 1 (spec) and 2 (environment) complete.
+- **Code:** `src/lib/env` (validated config + feature gating), `src/lib/crypto`, `src/lib/logging/redact.ts`, `src/lib/config`, `src/lib/supabase` (generated types + typed admin client), `supabase/migrations` (12 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests. **No Next.js app, UI, routes, workers, or integrations exist yet.** Do not claim otherwise.
+- **Supabase:** project `rnqrqconfbcrmszllxgu` (eu-north-1, Postgres 17) is the **development** database (ADR-010): 33 tables, RLS everywhere, no application data. Staging/production projects do not exist yet.
+- **Next phase:** App shell & auth. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
 
 ## Stack (verified versions in docs/architecture-decisions.md, ADR-002)
 
@@ -30,7 +30,14 @@ Next.js App Router · React · strict TypeScript · Tailwind CSS + shadcn/ui · 
 - Never log keys, auth headers, tokens, codes, or raw webhook payloads; pass anything that might contain them through `redact()` from `@/lib/logging/redact`.
 - Test fixtures build fake credentials at runtime (`tests/helpers/env-fixtures.ts`) — never commit realistic-looking keys.
 
-## Repository layout (target; `src/lib`, `scripts`, `tests` exist, the rest arrives in Phase 3+)
+## Database
+
+- Schema changes only through new files in `supabase/migrations/` (never edit an applied migration). After each migration: run the pgTAP suite, check Supabase advisors, regenerate types (`npm run db:types`), and update docs/database-design.md.
+- Roles: owner > admin > operator > viewer. Permission matrix: docs/database-design.md §3.
+- Clients never write execution state, credentials, billing, or published workflow versions; the server does, after validation.
+- JSON configuration is validated by versioned schemas (`private.*_is_valid`) and must never contain credentials.
+
+## Repository layout (target; `src/lib`, `supabase`, `scripts`, `tests` exist, the rest arrives with the app shell)
 
 ```
 src/
@@ -41,7 +48,8 @@ src/
     ui/                     React components for this module.
   lib/                      Cross-cutting utilities (supabase clients, env, logging).
 supabase/migrations/        Versioned SQL migrations — the only way to change the schema.
-supabase/tests/             pgTAP tests for RLS and database functions.
+supabase/tests/database/    pgTAP security tests (each file self-contained, rolled back).
+supabase/test-fixtures/     Shared pgTAP fixtures, copied into test files by npm run db:test:sync.
 trigger/                    Trigger.dev task definitions (durable execution).
 tests/                      Vitest unit/integration tests and Playwright e2e.
 docs/                       Specification and decisions.
@@ -54,7 +62,7 @@ Modules: `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `model
 1. **Never fabricate.** Do not claim an integration, feature, or test works unless it was actually executed and observed. Mocked or contract-tested adapters must be labelled as such. Report failing tests verbatim.
 2. **Model output is never authorization.** Every tool call proposed by a model is re-checked server-side against the caller's organization, the employee's granted tools, entitlements, and policy. The model cannot grant itself permissions, choose another org, or skip approvals.
 3. **No privileged credentials in browser code.** Only `NEXT_PUBLIC_*` variables reach the client, and only the Supabase URL, Supabase publishable key, Stripe publishable key, and app URL may be `NEXT_PUBLIC_`. Server modules import `server-only`.
-4. **No cross-organization access.** Every tenant-owned table has `organization_id`, RLS enabled, and policies using the `private.is_org_member` / `private.has_org_role` helpers. Service-role code must scope every query by `organization_id` explicitly.
+4. **No cross-organization access.** Every tenant-owned table has `organization_id`, `UNIQUE (id, organization_id)`, composite foreign keys to its parents, RLS enabled, explicit grants, and policies using `private.member_org_ids()` / `private.org_ids_with_min_role()`. Service-role code (`getAdminClient()`) must scope every query by `organization_id` explicitly. New tables follow docs/database-design.md §1 and get pgTAP isolation tests.
 5. **Persist long-running state.** Anything that waits (approvals, retries, multi-step runs, scheduled work) runs in the durable engine with state in Postgres — never in an in-memory promise or a serverless request.
 6. **Validate AI-generated workflows** with Zod schema validation *and* semantic validation (tools exist, are granted, integrations connected, graph acyclic where required, policies satisfiable) before saving a draft, and again before publishing.
 7. **Restricted actions require approval.** Tool risk levels and org policies determine `auto` / `require_approval` / `deny`; default for external writes is `require_approval`.
@@ -75,7 +83,13 @@ Modules: `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `model
 | `npm run env:check:connectivity` | Plus read-only provider checks (Supabase, Anthropic, Resend, Stripe) |
 | `npm run env:generate-key` | New entry for the credential-encryption keyring |
 
-Added in Phase 3: `dev`, `build`, `lint`, `test:e2e`, `db:*`.
+| `npm run db:test:sync` | Copy `supabase/test-fixtures/*.sql` into the pgTAP test files |
+| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
+| `npx supabase migration list --linked` | Compare local and applied migrations |
+| `npx supabase db push --linked --dry-run` | Preview pending migrations (then run without `--dry-run`) |
+| `npx supabase test db --linked` | Run the pgTAP security suite (requires `supabase login` + `link`) |
+
+Added with the app shell: `dev`, `build`, `lint`, `test:e2e`. Database workflow details: docs/supabase-setup.md.
 
 ## Environment
 
@@ -90,7 +104,7 @@ Added in Phase 3: `dev`, `build`, `lint`, `test:e2e`, `db:*`.
 |---|---|
 | Vision / requirements / MVP | docs/product-vision.md, docs/product-requirements.md, docs/mvp-scope.md |
 | Architecture | docs/system-architecture.md, docs/architecture-decisions.md |
-| Data | docs/database-design.md, docs/supabase-setup.md |
+| Data | docs/database-design.md (schema, roles, RLS), docs/supabase-setup.md (operations) |
 | Employees and orchestration | docs/ai-employee-architecture.md, docs/agent-orchestration.md |
 | Integrations | docs/integration-architecture.md |
 | Credentials | docs/api-credentials.md (inventory), docs/credential-setup.md (setup, redirect URIs, webhooks, scopes, rotation) |

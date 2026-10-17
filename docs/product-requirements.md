@@ -11,7 +11,7 @@ Requirement IDs are stable; reference them in code comments, tests, and PRs. Pri
 | AUTH-3 | Sessions handled with `@supabase/ssr` cookies; server components read the user server-side. | P0 |
 | ORG-1 | A user can create an organization and becomes its `owner`. | P0 |
 | ORG-2 | A user can belong to multiple organizations and switch the active one. | P0 |
-| ORG-3 | Roles: `owner`, `admin`, `member`, `viewer`. Only owners/admins manage members, integrations, billing, policies. | P0 |
+| ORG-3 | Roles: `owner`, `admin`, `operator`, `viewer`. Owners/admins manage members, integrations, billing, policies; operators run the workforce (employees, knowledge, workflows, approvals); viewers read. Permission matrix: database-design.md §3. | P0 |
 | ORG-4 | Invite members by email with expiring, single-use tokens. | P0 |
 | ORG-5 | Ownership transfer; an org always has ≥1 owner. | P1 |
 | ORG-6 | Organization deletion with data export and grace period. | P2 |

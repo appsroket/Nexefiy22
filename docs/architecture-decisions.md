@@ -10,7 +10,7 @@ Status values: **Accepted**, **Proposed** (needs owner/phase confirmation), **Su
 **Decision:** One Next.js application with strict module folders and service APIs; durable workers via Trigger.dev from the same repo. No microservices until a module has a concrete scaling or isolation need.
 **Consequences:** Simple deploys and refactors; boundaries must be enforced by lint rules and review.
 
-## ADR-002 Technology versions — Proposed (verify at Phase 3 install)
+## ADR-002 Technology versions — Proposed (verify each package when the app-shell phase installs it)
 
 Latest npm versions observed on 2026-10-17:
 
@@ -18,8 +18,8 @@ Latest npm versions observed on 2026-10-17:
 |---|---|---|
 | next | 16.4.2 | App Router; requires Node ≥ 20.9 (local Node 24.20 ✅) |
 | react | 19.3.1 | |
-| typescript | 7.0.2 | Native (Go) compiler. Installed in Phase 2: `tsc --noEmit` and Vitest work. **Still verify** with Next.js and ESLint in Phase 3; fall back to 6.x if anything breaks. |
-| @anthropic-ai/sdk | 0.135.0 | Installed in Phase 2 (env connectivity check); model adapter in Phase 5 |
+| typescript | 7.0.2 | Native (Go) compiler. Installed in Phase 2: `tsc --noEmit` and Vitest work. **Still verify** with Next.js and ESLint in the app-shell phase; fall back to 6.x if anything breaks. |
+| @anthropic-ai/sdk | 0.135.0 | Installed in Phase 2 (env connectivity check); model adapter in the AI-employees phase |
 | tsx | 4.23.15 | Runs TypeScript scripts (`npm run env:check`) |
 | tailwindcss | 4.3.3 | |
 | shadcn (CLI) | 4.22.0 | |
@@ -44,7 +44,7 @@ Postgres with RLS for tenant isolation, Supabase Auth with `@supabase/ssr`, Stor
 
 **Context:** Runs wait hours/days for approvals and must survive deploys and serverless timeouts.
 **Options:** Trigger.dev v4 (TypeScript-native, waitpoint tokens, concurrency keys, schedules, cloud + self-host), Inngest (similar, step functions), Temporal (most powerful, heavier ops), Postgres queue (`pgmq`) + custom workers (most control, most work).
-**Decision:** Trigger.dev v4, with orchestration logic in `modules/workflows` and Trigger.dev confined to thin task wrappers so it is replaceable. Confirm pricing/region at Phase 8.
+**Decision:** Trigger.dev v4, with orchestration logic in `modules/workflows` and Trigger.dev confined to thin task wrappers so it is replaceable. Confirm pricing/region in the durable-execution phase.
 
 ## ADR-005 Postgres as the source of truth for run state — Accepted
 
@@ -58,17 +58,20 @@ Orchestration via versioned graphs with typed node outputs; bounded delegation t
 
 Own thin `ModelProvider` interface; first adapter uses the official Anthropic SDK. Model tiers (`fast`/`balanced`/`deep`) map to concrete models in config. Using the Vercel AI SDK (`ai` 7.x) as an adapter implementation detail is allowed but not as the public interface, to keep tool-call handling and cost accounting under our control.
 
-## ADR-008 Embeddings provider — Proposed
+## ADR-008 Embeddings: Voyage AI `voyage-4`, 1024 dimensions — Accepted (Phase 3)
 
-Anthropic does not provide a first-party embeddings API; options: Voyage AI, OpenAI `text-embedding-3-*`, or Supabase built-in `gte-small` via Edge Functions. Decide in Phase 4 based on quality, cost, and EU data-handling; vector dimension in `knowledge_chunks` follows the choice.
+**Context:** Anthropic has no first-party embeddings API. Options were Voyage AI, OpenAI `text-embedding-3-*`, and Supabase `gte-small` (384-d, Edge Functions). The schema needs a fixed vector dimension.
+**Decision:** Voyage AI `voyage-4` (current Voyage generation, verified 2026-10-17 in Voyage's docs: default output 1024, also 256/512/2048) at **1024 dimensions**, cosine distance, HNSW index (pgvector 0.8). Constants in `src/lib/config/embeddings.ts`; credential `VOYAGE_API_KEY`.
+**Consequences:** every chunk stores `embedding_model`; changing model or dimension needs a migration and re-embedding (vectors across models — including Voyage 3.x vs 4.x — are not comparable). 1024 balances retrieval quality, storage (4 KB per vector), and index speed.
 
 ## ADR-009 Tool definitions in code, grants in the database — Accepted
 
 Typed Zod schemas and risk levels are code (type-checked, reviewed, versioned). Which org/employee may use which tool is data (auditable, revocable).
 
-## ADR-010 Database environments for development and testing — Proposed
+## ADR-010 Database environments — Accepted (Phase 3, owner decision 2026-10-17)
 
-No Docker locally. Proposal: keep `rnqrqconfbcrmszllxgu` as the main project; create a second Supabase project (or enable branching) for dev/test; CI uses `supabase start` in Docker. Needs owner decision before Phase 3 migrations run.
+**Decision:** `rnqrqconfbcrmszllxgu` (empty at the time) is the **development** database; migrations are applied and pgTAP tests run against it inside rolled-back transactions. Separate staging and production projects are created before launch. CI can run `supabase start` in Docker for isolated test databases.
+**Consequences:** never run `db reset` against the linked project; production promotion follows the checklist in supabase-setup.md.
 
 ## ADR-011 Integration credential storage in Supabase Vault — Superseded by ADR-014
 
@@ -98,8 +101,8 @@ Web app on Vercel (EU region near Supabase), workers on Trigger.dev Cloud. Voice
 **Verified 2026-10-17** (Anthropic API reference bundled with Claude Code, cached 2026-10-06):
 - Models: `claude-opus-5-5` ($4 / $20 per million input/output tokens, 1M context), `claude-sonnet-5-5` ($2 / $10), `claude-haiku-5-5` ($0.10 / $0.50 for prompts up to 100K tokens).
 - Tool calling with `strict: true` schema enforcement; structured outputs via `output_config.format` / `messages.parse()`; streaming; prompt caching; Models API for live capability lookup.
-- Notes for the adapter (Phase 5): forced `tool_choice` (`any`/`tool`) is rejected on Opus 5.5 / Sonnet 5.5 — use `auto` + `strict` tools or structured outputs; thinking cannot be disabled on Opus 5.5 (tune `effort`, default `medium`); handle `stop_reason: "refusal"`.
-**Decision:** `AI_PROVIDER=anthropic` (default) with the official `@anthropic-ai/sdk`. Default model `claude-opus-5-5`; tier mapping (`deep`/`balanced`/`fast` → Opus 5.5 / Sonnet 5.5 / Haiku 5.5) stays configuration, confirmed against cost data in Phase 5. Only `ANTHROPIC_API_KEY` is required. `AI_PROVIDER=openai` is accepted by configuration but reported as "adapter not implemented" until an adapter exists.
+- Notes for the adapter (AI-employees phase): forced `tool_choice` (`any`/`tool`) is rejected on Opus 5.5 / Sonnet 5.5 — use `auto` + `strict` tools or structured outputs; thinking cannot be disabled on Opus 5.5 (tune `effort`, default `medium`); handle `stop_reason: "refusal"`.
+**Decision:** `AI_PROVIDER=anthropic` (default) with the official `@anthropic-ai/sdk`. Default model `claude-opus-5-5`; tier mapping (`deep`/`balanced`/`fast` → Opus 5.5 / Sonnet 5.5 / Haiku 5.5) stays configuration, confirmed against cost data in the AI-employees phase. Only `ANTHROPIC_API_KEY` is required. `AI_PROVIDER=openai` is accepted by configuration but reported as "adapter not implemented" until an adapter exists.
 
 ## ADR-016 Resend for transactional email — Accepted (Phase 2)
 

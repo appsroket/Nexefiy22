@@ -24,7 +24,7 @@ Node =
   | { id, type: 'employee_task', employeeId, instructions, outputSchema?: JSONSchema }
   | { id, type: 'tool_action', toolKey, connectionId?, input: TemplatedInput }
   | { id, type: 'condition', expression: ConditionExpr }      // safe expression AST, no eval
-  | { id, type: 'approval', approverRole: 'owner'|'admin'|'member', message, expiresInHours }
+  | { id, type: 'approval', approverRole: 'owner'|'admin'|'operator', message, expiresInHours }
   | { id, type: 'delay', duration: ISO8601Duration }
   // P1: parallel, join, loop; P2: sub_workflow
 ```

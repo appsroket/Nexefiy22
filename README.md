@@ -2,11 +2,12 @@
 
 Universal AI workforce and business operations platform: configure AI employees, connect business apps, coordinate work through workflows, and supervise execution with human approvals.
 
-**Status:** Phase 2 — specification plus the environment/credential foundation. There is no runnable web application yet.
+**Status:** Phase 3 — specification, environment/credential foundation, and the database schema with RLS and security tests. There is no runnable web application yet.
 
 - Project instructions: [CLAUDE.md](CLAUDE.md)
 - Specification and architecture: [docs/](docs/)
 - Credentials: [inventory](docs/api-credentials.md) · [setup guide](docs/credential-setup.md) · [variable reference](docs/environment-variables.md)
+- Database: [design](docs/database-design.md) · [operations](docs/supabase-setup.md)
 - Roadmap: [docs/implementation-roadmap.md](docs/implementation-roadmap.md)
 
 ## Local setup

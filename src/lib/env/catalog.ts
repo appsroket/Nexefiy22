@@ -17,6 +17,7 @@ export type FeatureKey =
   | 'core'
   | 'supabaseAdmin'
   | 'ai'
+  | 'embeddings'
   | 'email'
   | 'billing'
   | 'credentialEncryption'
@@ -79,6 +80,13 @@ export const FEATURES: Record<FeatureKey, FeatureDefinition> = {
     unlocks: 'AI employees, chat, and natural-language workflow generation',
     dependsOn: [],
     guide: `${GUIDE}#b-ai-model-provider`,
+  },
+  embeddings: {
+    key: 'embeddings',
+    label: 'Embeddings (Voyage AI)',
+    unlocks: 'indexing knowledge documents and semantic knowledge search',
+    dependsOn: [],
+    guide: `${GUIDE}#b2-embeddings-voyage-ai`,
   },
   email: {
     key: 'email',
@@ -249,6 +257,18 @@ export const ENV_VARS: EnvVarDefinition[] = [
     validate: startsWithAny('sk-'),
     formatHint: 'must be an OpenAI API key starting with "sk-"',
     whereToFind: 'https://platform.openai.com/api-keys',
+  },
+
+  // --- Embeddings ------------------------------------------------------------
+  {
+    name: 'VOYAGE_API_KEY',
+    feature: 'embeddings',
+    exposure: 'server',
+    secret: true,
+    description: 'Voyage AI API key for the voyage-4 embedding model (1024 dimensions).',
+    validate: minLength(20),
+    formatHint: 'is too short to be a Voyage AI API key',
+    whereToFind: 'https://dashboard.voyageai.com/ → API Keys',
   },
 
   // --- Email ---------------------------------------------------------------

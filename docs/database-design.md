@@ -1,140 +1,164 @@
 # Database Design
 
-Postgres 17 on Supabase. All schema changes are versioned migrations in `supabase/migrations/`. This document is the target design; tables are created phase by phase (see [implementation-roadmap.md](implementation-roadmap.md)).
+Implemented schema (Phase 3). PostgreSQL 17 on Supabase project `rnqrqconfbcrmszllxgu`. Source of truth: `supabase/migrations/`. Generated types: `src/lib/supabase/database.types.ts`. Operations (apply, test, generate types): [supabase-setup.md](supabase-setup.md).
 
 ## 1. Conventions
 
-- Every tenant-owned table has `organization_id uuid not null references organizations(id) on delete cascade`, indexed, as the leading column of composite indexes.
-- `id uuid primary key default gen_random_uuid()`, `created_at timestamptz not null default now()`, `updated_at timestamptz not null default now()` (maintained by a trigger).
-- `created_by uuid references auth.users(id)` where a human creates the row.
-- Enums as Postgres `text` + `check` constraints (easier to migrate than native enums).
-- JSON configuration in `jsonb`, always validated by Zod in the app and, for critical shapes, by `pg_jsonschema` check constraints.
-- Soft delete only where restore is a product feature (`archived_at`); otherwise hard delete.
-- **RLS enabled on every table in `public`**, no exceptions. Tables with no client access get RLS enabled and no policies (service role only).
+- **Identity:** Supabase Auth (`auth.users`) only. `public.profiles` mirrors name/email/avatar via triggers. No password data in `public`.
+- **Keys:** `uuid` primary keys (`gen_random_uuid()`); `bigint identity` for append-only, high-volume tables (`audit_logs`, `execution_events`, `usage_records`).
+- **Tenancy:** every tenant table has `organization_id` and `UNIQUE (id, organization_id)`. Children reference parents with **composite foreign keys** `(parent_id, organization_id)`, so a row can never point at another organization's data — even if a client lies about `organization_id`.
+- **Timestamps:** `timestamptz` only; `created_at` default `now()`; `updated_at` maintained by `private.set_updated_at()`.
+- **Status values:** `text` + `CHECK (... in (...))` (easier to evolve than enums). Lifecycle consistency is also checked, e.g. finished tasks must have `completed_at`, failed ones an `error`.
+- **Deletion:** explicit per FK — `cascade` for owned children, `set null (column)` for optional references, `no action` for history that must not dangle (run → published version).
+- **JSON:** `jsonb` objects, validated by versioned JSON schemas where structure matters, and scanned by `private.jsonb_contains_secret()` everywhere so provider credentials can never be stored in configuration.
+- **Money:** integer minor units (`*_minor bigint`) for prices and outcome values; integer micro-units (`cost_micros`, 1/1,000,000) for usage costs; always paired with an ISO 4217 `currency` (`^[A-Z]{3}$`). No floats.
+- **Idempotency:** `UNIQUE (organization_id, idempotency_key)` on `workflow_runs`, `tasks`, `tool_executions`, `usage_records`, `outcome_records`; `UNIQUE (provider, event_id)` on `provider_webhook_events`.
 
 ## 2. Schemas
 
-| Schema | Purpose |
-|---|---|
-| `public` | Application tables exposed through PostgREST under RLS. |
-| `private` | Security-definer helper functions and internal tables never exposed via the API. |
-| `vault` | Supabase Vault — not used for customer credentials (application-level encryption instead, ADR-014). |
-| `extensions` | `pgcrypto`, `uuid-ossp`, `vector`, `pg_jsonschema`, etc. |
-
-## 3. Authorization helpers (in `private`, `security definer`, `set search_path = ''`)
-
-```sql
-private.is_org_member(org_id uuid) returns boolean
-private.has_org_role(org_id uuid, roles text[]) returns boolean
-```
-
-Both read `public.organization_members` for `auth.uid()`. Policies call them as `(select private.is_org_member(organization_id))` so the planner evaluates efficiently. `private` is not in the API's exposed schemas.
-
-Standard policy set for a tenant table:
-
-```sql
--- read: any member
-create policy "members read" on public.<t> for select to authenticated
-  using ((select private.is_org_member(organization_id)));
--- write: role-restricted per table
-create policy "admins write" on public.<t> for all to authenticated
-  using ((select private.has_org_role(organization_id, array['owner','admin'])))
-  with check ((select private.has_org_role(organization_id, array['owner','admin'])));
-```
-
-## 4. Tables by module
-
-### Identity
-| Table | Key columns | Client access |
+| Schema | Contents | Exposed by Data API |
 |---|---|---|
-| `profiles` | `id` (= auth.users.id), `full_name`, `avatar_url` | self read/update; co-members read |
-| `organizations` | `name`, `slug` unique, `created_by` | members read; owners/admins update; insert via `create_organization()` RPC |
-| `organization_members` | `organization_id`, `user_id`, `role` check in (owner, admin, member, viewer), unique(org,user) | members read; owners/admins manage; last-owner guard trigger |
-| `organization_invitations` | `email`, `role`, `token_hash`, `expires_at`, `accepted_at` | owners/admins; acceptance via RPC |
+| `public` | Application tables (33) and 5 RPCs | yes, under RLS + explicit grants |
+| `private` | Helper, validator, and trigger functions | no |
+| `extensions` | `pgcrypto`, `vector` 0.8, `pg_jsonschema` | no |
+| `vault` | Supabase Vault — not used for customer credentials (ADR-014) | no |
 
-### Knowledge
-| Table | Key columns |
-|---|---|
-| `business_profiles` | one per org; `profile jsonb` (industry, offerings, tone, hours, policies) |
-| `knowledge_collections` | `name`, `description` |
-| `knowledge_documents` | `collection_id`, `storage_path`, `mime_type`, `status` (pending/processing/ready/failed), `checksum` |
-| `knowledge_chunks` | `document_id`, `content`, `token_count`, `embedding vector(1536)` (dimension fixed by chosen embedding model, ADR-008), HNSW index |
+## 3. Roles and permissions
 
-Retrieval via `match_knowledge_chunks(org_id, collection_ids, query_embedding, k)` — `security invoker` so RLS applies.
+Roles: `owner` > `admin` > `operator` > `viewer` (`private.role_rank`). Membership `status` is `active` or `revoked`; revoked and removed members lose all access immediately.
 
-### Employees
-| Table | Key columns |
-|---|---|
-| `employee_templates` | global (no org) catalog; `slug`, `category`, `default_config jsonb`; read-only to clients |
-| `employees` | `name`, `role_category`, `status` (draft/active/paused/archived), `current_version_id` |
-| `employee_versions` | `employee_id`, `version int`, `config jsonb` (instructions, model tier, limits), immutable once created |
-| `employee_tool_grants` | `employee_id`, `tool_key`, `connection_id` nullable, `autonomy` override (bounded by policy) |
-| `employee_knowledge_grants` | `employee_id`, `collection_id` |
+| Capability | viewer | operator | admin | owner | server (service role) |
+|---|---|---|---|---|---|
+| Read organization data (employees, knowledge, workflows, runs, tasks, approvals, outcomes) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Manage employees, versions, skills, knowledge sources, workflow drafts & triggers | | ✓ | ✓ | ✓ | ✓ |
+| Decide approvals (per `required_role`, default operator) | | ✓ | ✓ | ✓ | |
+| Grant tools to employees, manage integrations & actions, policies, company settings | | | ✓ | ✓ | ✓ |
+| Manage members & invitations (operators/viewers) | | | ✓ | ✓ | ✓ |
+| Manage admins/owners, invite admins, delete organization | | | | ✓ | ✓ |
+| Read audit log, subscriptions, usage & cost | | | ✓ | ✓ | ✓ |
+| Read or write integration credentials | | | | | ✓ |
+| Write execution state, publish workflow versions, billing records | | | | | ✓ |
 
-### Skills, tools, integrations
-| Table | Key columns | Client access |
+Anonymous users can read only the public plan catalog.
+
+## 4. Tables
+
+### Identity and organizations
+| Table | Purpose | Notes |
 |---|---|---|
-| `integration_connections` | `provider`, `status` (connected/needs_reauth/revoked/error), `external_account_id`, `scopes text[]`, `encrypted_credentials text` (AES-256-GCM envelope, ADR-014), `credentials_key_id text` | members read non-secret columns (column privilege on `encrypted_credentials` revoked from `authenticated`); admins manage via server |
-| `integration_webhook_events` | `provider`, `provider_event_id` unique per provider, `received_at`, `processed_at`, `payload_ref` | none (service only) |
-| `tool_invocations` | `task_id`, `step_id`, `tool_key`, `input_redacted jsonb`, `output_redacted jsonb`, `status`, `idempotency_key` unique, `policy_decision` | members read |
+| `profiles` | Display data for `auth.users` | Created by trigger on sign-up; visible to self and co-members |
+| `organizations` | Tenants | Created only via `create_organization()` |
+| `organization_members` | User ↔ organization with role/status | PK `(organization_id, user_id)`; guarded by `private.guard_membership_change()` (role rules, last-owner rule, records `revoked_at/by`) |
+| `organization_invitations` | Pending invitations | Stores `token_hash` (SHA-256) only; one pending invite per email; created via `create_invitation()`, accepted via `accept_invitation()` |
+| `company_settings` | Business profile per organization | One row per org; `settings` JSON secret-scanned |
 
-Tool definitions live in code (registry), not the database, so schemas are type-checked and versioned with code.
+### Business knowledge
+| Table | Purpose | Notes |
+|---|---|---|
+| `knowledge_sources` | Documents, URLs, text, integration content | Status `pending → processing → ready / failed / archived`; storage path must live under `<organization_id>/` |
+| `knowledge_chunks` | Content chunks + embeddings | `vector(1024)` from **Voyage `voyage-4`** (ADR-008); HNSW cosine index; `embedding_model` recorded per chunk; written by the ingestion pipeline (server) |
+
+Retrieval: `match_knowledge_chunks(org, embedding, count, source_ids, min_similarity)` — `SECURITY INVOKER`, so RLS applies.
+
+### AI workforce
+| Table | Purpose | Notes |
+|---|---|---|
+| `skills` | Skill catalog | `organization_id NULL` = built-in (5 seeded); org skills unique per key |
+| `ai_employees` | Employees | Category, status; `current_version_id` → own versions only; cannot be active without a version |
+| `employee_versions` | Immutable configuration + instructions | Version number assigned by trigger; `config` validated against **employee config schema v1**; no secrets in config or instructions; updates rejected |
+| `employee_skills` | Employee ↔ skill (M:N) | Skill must be built-in or same organization |
+| `employee_tool_permissions` | Per-employee tool ceiling (`allow`/`require_approval`/`deny`) | Optionally bound to an integration of the same org; admin-only |
+
+### Integrations
+| Table | Purpose | Notes |
+|---|---|---|
+| `integrations` | Connections (provider, account, scopes, status) | Created by the server OAuth callback; members read metadata |
+| `integration_actions` | Actions enabled per connection with risk level & approval mode | `sensitive` actions can never be `allow` |
+| `integration_secrets` | **Encrypted** credentials | Only `nxf1.` AES-256-GCM envelopes accepted (ADR-014); `key_id` must match the envelope; RLS on, no policies, no client grants — service role only |
 
 ### Workflows
-| Table | Key columns |
-|---|---|
-| `workflows` | `name`, `description`, `status` (draft/active/paused/archived), `current_version_id`, `draft_definition jsonb` |
-| `workflow_versions` | `workflow_id`, `version`, `definition jsonb` (validated), `published_by`, immutable |
-| `workflow_triggers` | `workflow_id`, `type` (manual/schedule/integration_event/webhook), `config jsonb`, `enabled` |
-| `workflow_runs` | `workflow_version_id`, `status` (queued/running/waiting/succeeded/failed/cancelled/rejected), `trigger_payload_ref`, `started_at`, `finished_at`, `trigger_run_id` |
-| `workflow_run_steps` | `run_id`, `node_id`, `attempt`, `status`, `input jsonb`, `output jsonb`, `waitpoint_id`, `error` |
+| Table | Purpose | Notes |
+|---|---|---|
+| `workflow_definitions` | Editable metadata + draft graph | `lock_version` bumped on every update (optimistic locking) |
+| `workflow_versions` | Immutable published graphs | Graph validated against **workflow graph schema v1** + structural checks (unique node ids, edges reference nodes); `graph_sha256` computed by trigger; published by the server only |
+| `workflow_triggers` | manual / schedule / integration_event / webhook | Webhook triggers store only a secret hash |
+
+### Execution
+| Table | Purpose | Notes |
+|---|---|---|
+| `workflow_runs` | Run of a pinned workflow version | Status lifecycle, `engine_run_id`, idempotency key |
+| `tasks` | Units of work (workflow node, chat, manual, API, schedule) | Pins `employee_version_id`; attempts bounded by `max_attempts` |
+| `task_dependencies` | Task DAG (M:N) | Same run only; cycles rejected by trigger |
+| `task_attempts` | Retry history | `attempt_number` unique per task |
+| `tool_executions` | Each tool call: redacted input, `input_sha256`, policy decision, status | Proposed action immutable after insert; `deny` ⇒ `skipped`; `require_approval` cannot run without an approved approval for the exact fingerprint |
+| `execution_events` | Append-only event stream | Secret-scanned; updates rejected |
 
 ### Governance
-| Table | Key columns |
-|---|---|
-| `policies` | org-level `rules jsonb` (per risk level / tool / employee), `version` |
-| `approval_requests` | `task_id`, `run_step_id`, `tool_invocation_id`, `requested_action jsonb`, `rationale`, `status` (pending/approved/rejected/expired/cancelled), `decided_by`, `decided_at`, `expires_at`, `edited_input jsonb` |
+| Table | Purpose | Notes |
+|---|---|---|
+| `organization_policies` | Approval policy documents | **Policy schema v1**; `revision` bumped on change; default policy created with each organization |
+| `approval_requests` | Human decisions bound to an action | `payload_sha256` must equal the tool execution's `input_sha256`; records employee/workflow version and policy revision; proposed action immutable; decisions via `decide_approval()` only |
+| `audit_logs` | Append-only audit trail | Written by triggers on 16 tables (column names + allow-listed values only); no FKs so history outlives deleted rows; updates/deletes rejected except `private.purge_audit_logs()` (≥ 365 days, service role) |
 
-Decisions are made through `decide_approval(request_id, decision, edited_input)` RPC that checks role and pending status atomically, then the server resumes the waitpoint.
+### Billing and outcomes
+| Table | Purpose | Notes |
+|---|---|---|
+| `plans` | Plan catalog (4 seeded, prices TBD) | Public read |
+| `plan_entitlements` | Limits per plan | `NULL` limit = unlimited |
+| `subscriptions` | Stripe (or manual) subscription mirror | One live subscription per org; admins read; server writes |
+| `usage_records` | Metering (tasks, tokens, cost) | Append-only; `cost_micros` + currency |
+| `outcome_records` | Business outcomes for analytics | Members read |
+| `provider_webhook_events` | Webhook idempotency | Fingerprint only, never raw payloads; service role only |
 
-### Observability
-| Table | Key columns |
-|---|---|
-| `tasks` | `employee_id`, `workflow_run_id` nullable, `title`, `status`, `source` (chat/workflow/api), `cost_usd numeric`, timings |
-| `task_events` | `task_id`, `seq`, `type` (model_turn/tool_call/approval/policy/error/note), `data jsonb` (redacted) |
-| `audit_events` | `actor_type` (user/employee/system), `actor_id`, `action`, `target_type`, `target_id`, `metadata jsonb`, `ip_hash`; **append-only** (no update/delete policies; trigger blocks updates) |
+## 5. Versioned JSON schemas
 
-### Analytics and billing
-| Table | Key columns |
-|---|---|
-| `model_usage` | `task_id`, `provider`, `model`, `input_tokens`, `output_tokens`, `cost_usd` |
-| `outcome_events` | `employee_id`, `outcome_key`, `value`, `task_id` |
-| `billing_customers` | `stripe_customer_id` unique (service only) |
-| `subscriptions` | `stripe_subscription_id`, `plan_key`, `status`, `current_period_end` (members read; service writes) |
-| `plan_entitlements` | global: `plan_key`, `entitlements jsonb` |
-| `usage_counters` | `period_start`, `metric`, `value` (service writes) |
-| `stripe_events` | `stripe_event_id` unique, processed flag (service only, idempotency) |
+| Validator | Used by | Versions |
+|---|---|---|
+| `private.employee_config_is_valid(version, config)` | `employee_versions.config` | v1: `modelTier`, optional `model`, `channels`, required `limits` (turns, tool calls, cost), `outputStyle`, `knowledge` |
+| `private.workflow_graph_is_valid(version, graph)` | `workflow_versions.graph` | v1: `nodes` (`employee_task`, `tool_action`, `condition`, `approval`, `delay`), `edges`, `settings` + structural checks |
+| `private.policy_document_is_valid(version, policy)` | `organization_policies.policy` | v1: `rules[]` with `effect`, `toolKeys`, `riskLevels`, `employeeIds`, `conditions`; `defaults` |
 
-## 5. Data retention
+To evolve a format: add a new branch (`when 2 then …`) in a new migration with `create or replace function`, never change an existing branch.
 
-| Data | Retention |
-|---|---|
-| `task_events` detailed payloads | 90 days (configurable per plan), then summarized |
-| `integration_webhook_events` | 30 days |
-| `audit_events` | 1 year minimum |
-| Knowledge documents | until deleted by user |
+## 6. Row Level Security
 
-Retention jobs run via `pg_cron` or Trigger.dev schedules (decided in Phase 8).
+- RLS is enabled on all 33 tables; every client-visible table has explicit per-command policies (`to authenticated`), and `anon` has no table privileges except the plan catalog.
+- Policies use `organization_id in (select private.member_org_ids())` or `private.org_ids_with_min_role('<role>')` — evaluated once per statement, derived only from `auth.uid()`; a client-supplied organization id is never trusted.
+- Privileges are granted explicitly per table and per column after revoking Supabase defaults, so even a mistaken policy cannot let clients write columns such as `status`, `created_by`, or `organization_id` on update.
 
-## 6. Migration plan
+### SECURITY DEFINER review
 
-| Phase | Migrations |
-|---|---|
-| 3 | extensions, `private` schema + helpers, identity tables, updated_at trigger, audit_events |
-| 4 | knowledge tables, `vector`, storage bucket + storage policies |
-| 5 | employees, templates seed, model_usage |
-| 6 | tool_invocations, policies, approval_requests, tasks, task_events |
-| 7 | integration_connections (encrypted credential columns), webhook events |
-| 8–9 | workflows, versions, triggers, runs, steps |
-| 10 | outcome_events, analytics views |
-| 11 | billing tables, entitlements seed |
+| Function | Why definer | Safeguards |
+|---|---|---|
+| `private.member_org_ids`, `org_ids_with_min_role`, `has_min_role`, `co_member_user_ids` | Read memberships inside policies without RLS recursion | Answer only for `auth.uid()`; `search_path = ''`; not executable by `anon` |
+| `private.handle_new_user`, `sync_user_email` | Triggers on `auth.users` | Write only the matching profile row |
+| `private.audit_row_change` | Insert audit rows regardless of caller | Stores column names and allow-listed values only |
+| `private.assign_employee_version`, `assign_workflow_version` | Number versions across all rows | Only read `max(version)` for the inserted row's parent |
+| `private.purge_audit_logs` | Retention | Service role only; refuses anything newer than 365 days |
+| `public.create_organization`, `create_invitation`, `accept_invitation`, `decide_approval` | Write rows clients cannot write directly | Derive the user from `auth.uid()`, check membership/role inside, `authenticated` only, generic errors for unknown ids/tokens |
+
+The Supabase security advisor reports these four RPCs (WARN, *authenticated can execute SECURITY DEFINER*) and two tables with RLS but no policies (INFO, `integration_secrets`, `provider_webhook_events`). Both are intentional and covered by tests.
+
+## 7. Migrations
+
+| Version | Name | Contents |
+|---|---|---|
+| 20261017215558 | foundation | extensions, `private` schema, timestamps, role rank, secret scan, JSON schema validators |
+| 20261017215654 | identity | profiles, organizations, members, invitations, company settings, membership helpers & guard |
+| 20261017215719 | knowledge | sources, chunks, HNSW index, `match_knowledge_chunks` |
+| 20261017215759 | workforce | skills (+ 5 built-ins), employees, versions, employee skills, tool permissions |
+| 20261017215823 | integrations | integrations, actions, encrypted secrets, deferred FKs |
+| 20261017215853 | workflows | definitions, versions, triggers |
+| 20261017215939 | execution | runs, tasks, dependencies, attempts, tool executions, events |
+| 20261017220022 | governance | policies, approval binding, audit log + triggers |
+| 20261017220059 | billing | plans (+ seed), entitlements, subscriptions, usage, outcomes, webhook idempotency |
+| 20261017220124 | api_functions | `create_organization`, `create_invitation`, `accept_invitation`, `decide_approval` |
+| 20261017221324 | version_numbering_definer | fix found by the tenant-isolation tests (see migration comment) |
+| 20261017221856 | foreign_key_indexes | indexes for tenant FKs without a leading index |
+
+## 8. Known gaps (by design, revisit later)
+
+- `created_by` / `updated_by`-style user references are not indexed; user deletion is rare. The performance advisor lists them (INFO).
+- When an employee is deleted, `tasks.employee_version_id` keeps the old id if `employee_id` was cleared first (the composite FK is then not enforced). Historical only; no cross-tenant risk.
+- Approval expiry is applied when someone tries to decide; a scheduled job to expire stale approvals belongs to the durable-execution phase.
+- Retention jobs (`execution_events`, webhook events) are not scheduled yet.

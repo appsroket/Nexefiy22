@@ -11,6 +11,7 @@
 //   only that feature (and features that depend on it), never the app.
 // - Messages name variables but never contain values.
 
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from '../config/embeddings'
 import { parseKeyring, type Keyring } from '../crypto/keyring'
 import {
   ENV_VARS_BY_NAME,
@@ -52,6 +53,7 @@ export interface ServerEnv {
   core: { supabaseUrl: string; supabasePublishableKey: string; appUrl: string }
   supabaseAdmin?: { key: string; keyType: 'secret' | 'legacy_service_role' }
   ai?: { provider: AiProvider; apiKey: string }
+  embeddings?: { apiKey: string; model: string; dimensions: number }
   email?: { resendApiKey: string; from: string }
   billing?: { secretKey: string; publishableKey: string; webhookSecret: string; mode: 'test' | 'live' }
   credentialEncryption?: { keyring: Keyring }
@@ -81,6 +83,9 @@ export function parseEnvironment(raw: RawEnv): EnvironmentSnapshot {
   const results = {
     supabaseAdmin: evaluateSupabaseAdmin(env),
     ai: evaluateAi(env),
+    embeddings: evaluateAllOf(env, 'embeddings', (get) => ({
+      value: { apiKey: get('VOYAGE_API_KEY'), model: EMBEDDING_MODEL, dimensions: EMBEDDING_DIMENSIONS },
+    })),
     email: evaluateAllOf(env, 'email', (get) => ({
       value: { resendApiKey: get('RESEND_API_KEY'), from: get('EMAIL_FROM') },
     })),

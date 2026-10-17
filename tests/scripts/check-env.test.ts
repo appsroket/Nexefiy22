@@ -54,7 +54,7 @@ describe('npm run env:check', () => {
   it('never prints secret values', () => {
     const { code, output } = run(fullEnv() as Record<string, string>)
     expect(code).toBe(0)
-    expect(output).toContain('12 configured')
+    expect(output).toContain('13 configured')
     for (const secret of fixtureSecretValues()) expect(output).not.toContain(secret)
   }, 60_000)
 

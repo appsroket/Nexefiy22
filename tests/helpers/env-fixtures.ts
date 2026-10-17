@@ -24,6 +24,7 @@ export const CORE_VARS: RawEnv = {
 export const FEATURE_VARS: Record<OptionalFeatureKey, RawEnv> = {
   supabaseAdmin: { SUPABASE_SECRET_KEY: fake('sb_secret_') },
   ai: { AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: fake('sk-ant-') },
+  embeddings: { VOYAGE_API_KEY: fake('pa-', 40) },
   email: { RESEND_API_KEY: fake('re_'), EMAIL_FROM: 'Nexefiy <notifications@mail.example.com>' },
   billing: {
     STRIPE_SECRET_KEY: fake('sk_test_'),
@@ -59,6 +60,7 @@ export function fixtureSecretValues(): string[] {
   return [
     FEATURE_VARS.supabaseAdmin.SUPABASE_SECRET_KEY!,
     FEATURE_VARS.ai.ANTHROPIC_API_KEY!,
+    FEATURE_VARS.embeddings.VOYAGE_API_KEY!,
     FEATURE_VARS.email.RESEND_API_KEY!,
     FEATURE_VARS.billing.STRIPE_SECRET_KEY!,
     FEATURE_VARS.billing.STRIPE_WEBHOOK_SECRET!,

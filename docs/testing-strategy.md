@@ -20,7 +20,7 @@ Principle: **security boundaries are tested as rigorously as features.** A phase
 
 **Tenant isolation (pgTAP + integration):** for every tenant table, as user A (org A): select/insert/update/delete rows of org B → 0 rows / error. Includes RPCs and storage objects.
 
-**Role boundaries:** `viewer` and `member` cannot manage members, integrations, policies, billing; cannot approve actions above their role; cannot remove the last owner.
+**Role boundaries:** `viewer` and `operator` cannot manage members, integrations, policies, billing; cannot approve actions above their role; cannot remove the last owner.
 
 **Unauthenticated:** anon key cannot read any tenant table.
 
@@ -34,15 +34,28 @@ Principle: **security boundaries are tested as rigorously as features.** A phase
 
 ## 3. Environments
 
-No Docker on the primary dev machine, so the Supabase local stack is unavailable. Options (decide in Phase 3, ADR-010):
-- **Preferred:** a dedicated Supabase **dev/test project** (or Supabase branching) for integration and pgTAP tests, reset via migrations + seed.
-- CI (GitHub Actions, Linux) *can* run `supabase start` with Docker, giving isolated ephemeral databases per run.
+No Docker on the primary dev machine, so the Supabase local stack is unavailable there (ADR-010):
+- Database tests run against the **development project** (`rnqrqconfbcrmszllxgu`) with `npx supabase test db --linked`. Every test file runs in a transaction that is rolled back, so no data persists.
+- CI (GitHub Actions, Linux) can run `supabase start` + `supabase test db` with Docker for isolated databases per run (not set up yet).
 
-## 4. Test data
+## 4. Database security suite (implemented in Phase 3)
 
-Seed script creates: 2 orgs × users with each role, employees, connections marked as `fixture`, workflows. Never real customer data. Fixture credentials are fake strings that cannot authenticate anywhere.
+| File | Covers | Tests |
+|---|---|---|
+| `supabase/tests/database/001_schema_security.test.sql` | RLS on every table, policy coverage, no anon access, no client access to credentials/webhooks, read-only execution/billing tables, every function pins `search_path`, exact RPC surface, `timestamptz`, vector dimension, no float money | 18 |
+| `002_tenant_isolation.test.sql` | Anonymous and outsider access, org A vs org B reads/updates/deletes/inserts across all 27 tenant tables, composite-FK cross-tenant references, knowledge search, approvals, invitations | 40 |
+| `003_roles_and_membership.test.sql` | Viewer/operator/admin/owner privileges, membership administration rules, revocation and removal, last-owner protection, invitation acceptance | 60 |
+| `004_credentials_and_integrity.test.sql` | Credentials unreadable by members and encrypted-only, secret scanning of config, JSON schemas, statuses and lifecycle checks, idempotency, immutability, task-dependency cycles, approval binding to payload fingerprint, expiry, audit log append-only | 55 |
 
-## 5. Definition of done (every phase)
+Shared fixture: `supabase/test-fixtures/two_organizations.sql` (two organizations, one user per role, one row in every tenant table), copied into each file by `npm run db:test:sync`; `npm test` fails if a copy drifts.
+
+Static checks in `tests/db/migrations.test.ts` (run by `npm test`, no database needed): migration naming, RLS + revoke for every created table, pinned `search_path` on every function, generated types cover every table, embedding dimension matches config.
+
+## 5. Test data
+
+Fixtures create users and organizations with fixed UUIDs inside the test transaction. Never real customer data. Fixture credentials are fake strings that cannot authenticate anywhere (built at runtime in Vitest fixtures so secret scanners stay quiet).
+
+## 6. Definition of done (every phase)
 
 - Typecheck, lint, unit, database, integration tests pass (output included in the phase report).
 - New tables have RLS + isolation tests.
