@@ -18,7 +18,7 @@ Postgres 17 on Supabase. All schema changes are versioned migrations in `supabas
 |---|---|
 | `public` | Application tables exposed through PostgREST under RLS. |
 | `private` | Security-definer helper functions and internal tables never exposed via the API. |
-| `vault` | Supabase Vault — encrypted integration secrets. |
+| `vault` | Supabase Vault — not used for customer credentials (application-level encryption instead, ADR-014). |
 | `extensions` | `pgcrypto`, `uuid-ossp`, `vector`, `pg_jsonschema`, etc. |
 
 ## 3. Authorization helpers (in `private`, `security definer`, `set search_path = ''`)
@@ -74,7 +74,7 @@ Retrieval via `match_knowledge_chunks(org_id, collection_ids, query_embedding, k
 ### Skills, tools, integrations
 | Table | Key columns | Client access |
 |---|---|---|
-| `integration_connections` | `provider`, `status` (connected/needs_reauth/revoked/error), `external_account_id`, `scopes text[]`, `vault_secret_id uuid` | members read (no secret columns); admins manage via server |
+| `integration_connections` | `provider`, `status` (connected/needs_reauth/revoked/error), `external_account_id`, `scopes text[]`, `encrypted_credentials text` (AES-256-GCM envelope, ADR-014), `credentials_key_id text` | members read non-secret columns (column privilege on `encrypted_credentials` revoked from `authenticated`); admins manage via server |
 | `integration_webhook_events` | `provider`, `provider_event_id` unique per provider, `received_at`, `processed_at`, `payload_ref` | none (service only) |
 | `tool_invocations` | `task_id`, `step_id`, `tool_key`, `input_redacted jsonb`, `output_redacted jsonb`, `status`, `idempotency_key` unique, `policy_decision` | members read |
 
@@ -124,17 +124,17 @@ Decisions are made through `decide_approval(request_id, decision, edited_input)`
 | `audit_events` | 1 year minimum |
 | Knowledge documents | until deleted by user |
 
-Retention jobs run via `pg_cron` or Trigger.dev schedules (decided in Phase 7).
+Retention jobs run via `pg_cron` or Trigger.dev schedules (decided in Phase 8).
 
 ## 6. Migration plan
 
 | Phase | Migrations |
 |---|---|
-| 2 | extensions, `private` schema + helpers, identity tables, updated_at trigger, audit_events |
-| 3 | knowledge tables, `vector`, storage bucket + storage policies |
-| 4 | employees, templates seed, model_usage |
-| 5 | tool_invocations, policies, approval_requests, tasks, task_events |
-| 6 | integration_connections, webhook events, Vault helpers |
-| 7–8 | workflows, versions, triggers, runs, steps |
-| 9 | outcome_events, analytics views |
-| 10 | billing tables, entitlements seed |
+| 3 | extensions, `private` schema + helpers, identity tables, updated_at trigger, audit_events |
+| 4 | knowledge tables, `vector`, storage bucket + storage policies |
+| 5 | employees, templates seed, model_usage |
+| 6 | tool_invocations, policies, approval_requests, tasks, task_events |
+| 7 | integration_connections (encrypted credential columns), webhook events |
+| 8–9 | workflows, versions, triggers, runs, steps |
+| 10 | outcome_events, analytics views |
+| 11 | billing tables, entitlements seed |

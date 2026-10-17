@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Nexefiy is a **modular monolith** (one Next.js application) plus a **durable execution worker** (Trigger.dev tasks deployed from the same repository), backed by **Supabase** (Postgres + Auth + Storage + Vault). Module boundaries are enforced by folder structure, import rules, and per-module service APIs, so a module can later be extracted into a service without redesign (ADR-001).
+Nexefiy is a **modular monolith** (one Next.js application) plus a **durable execution worker** (Trigger.dev tasks deployed from the same repository), backed by **Supabase** (Postgres + Auth + Storage). Module boundaries are enforced by folder structure, import rules, and per-module service APIs, so a module can later be extracted into a service without redesign (ADR-001).
 
 ```
  Browser (React, RSC)                         External apps (Gmail, Slack, HubSpot, …)
@@ -19,7 +19,7 @@ Nexefiy is a **modular monolith** (one Next.js application) plus a **durable exe
           ┌────────────┐                ┌──────────────────────┐
           │  Supabase  │◄───────────────│ Trigger.dev workers  │
           │ Postgres   │ service client │ employee runs, wf    │
-          │ Auth/Vault │ (org-scoped)   │ steps, retries, waits│
+          │ Auth       │ (org-scoped)   │ steps, retries, waits│
           │ Storage    │                └─────────┬────────────┘
           └────────────┘                          │
                                                   ▼

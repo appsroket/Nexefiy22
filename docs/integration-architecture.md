@@ -40,9 +40,9 @@ interface ToolDefinition<I, O> {
 ## 3. OAuth flow
 
 1. Admin clicks Connect → server route creates `state` (random, stored server-side with org id, user id, PKCE verifier, expiry) → redirect to provider.
-2. Callback route verifies `state`, exchanges code server-side, stores tokens in **Supabase Vault** (`vault.create_secret`), saves `vault_secret_id` on the connection, records granted scopes.
+2. Callback route verifies `state`, exchanges code server-side, encrypts the token set with `encryptCredential()` (AES-256-GCM, bound to org id + connection id, ADR-014), stores the envelope in `integration_connections.encrypted_credentials`, records granted scopes.
 3. Token refresh happens in the adapter layer with a row lock to avoid refresh races; failures set `status = needs_reauth` and notify admins.
-4. Disconnect revokes at provider (where supported), deletes the Vault secret, marks connection `revoked`, disables dependent tool grants and triggers.
+4. Disconnect revokes at provider (where supported), clears `encrypted_credentials`, marks connection `revoked`, disables dependent tool grants and triggers.
 
 Tokens never reach the browser, logs, task events, or model context.
 

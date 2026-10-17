@@ -10,7 +10,7 @@ Status values: **Accepted**, **Proposed** (needs owner/phase confirmation), **Su
 **Decision:** One Next.js application with strict module folders and service APIs; durable workers via Trigger.dev from the same repo. No microservices until a module has a concrete scaling or isolation need.
 **Consequences:** Simple deploys and refactors; boundaries must be enforced by lint rules and review.
 
-## ADR-002 Technology versions — Proposed (verify at Phase 2 install)
+## ADR-002 Technology versions — Proposed (verify at Phase 3 install)
 
 Latest npm versions observed on 2026-10-17:
 
@@ -18,7 +18,9 @@ Latest npm versions observed on 2026-10-17:
 |---|---|---|
 | next | 16.4.2 | App Router; requires Node ≥ 20.9 (local Node 24.20 ✅) |
 | react | 19.3.1 | |
-| typescript | 7.0.2 | Native (Go) compiler. **Verify** Next.js/ESLint/Vitest tooling compatibility; fall back to latest 5.x/6.x if anything breaks. |
+| typescript | 7.0.2 | Native (Go) compiler. Installed in Phase 2: `tsc --noEmit` and Vitest work. **Still verify** with Next.js and ESLint in Phase 3; fall back to 6.x if anything breaks. |
+| @anthropic-ai/sdk | 0.135.0 | Installed in Phase 2 (env connectivity check); model adapter in Phase 5 |
+| tsx | 4.23.15 | Runs TypeScript scripts (`npm run env:check`) |
 | tailwindcss | 4.3.3 | |
 | shadcn (CLI) | 4.22.0 | |
 | @supabase/supabase-js | 2.118.0 | |
@@ -36,13 +38,13 @@ Latest npm versions observed on 2026-10-17:
 
 ## ADR-003 Supabase as data, auth, storage, and secrets platform — Accepted
 
-Postgres with RLS for tenant isolation, Supabase Auth with `@supabase/ssr`, Storage for documents, Vault for integration tokens, pgvector for embeddings. Use the new `sb_publishable_` / `sb_secret_` keys; legacy JWT keys to be disabled before launch.
+Postgres with RLS for tenant isolation, Supabase Auth with `@supabase/ssr`, Storage for documents, pgvector for embeddings. (Integration tokens: see ADR-014.) Use the new `sb_publishable_` / `sb_secret_` keys; legacy JWT keys to be disabled before launch.
 
 ## ADR-004 Trigger.dev for durable execution — Proposed
 
 **Context:** Runs wait hours/days for approvals and must survive deploys and serverless timeouts.
 **Options:** Trigger.dev v4 (TypeScript-native, waitpoint tokens, concurrency keys, schedules, cloud + self-host), Inngest (similar, step functions), Temporal (most powerful, heavier ops), Postgres queue (`pgmq`) + custom workers (most control, most work).
-**Decision:** Trigger.dev v4, with orchestration logic in `modules/workflows` and Trigger.dev confined to thin task wrappers so it is replaceable. Confirm pricing/region at Phase 7.
+**Decision:** Trigger.dev v4, with orchestration logic in `modules/workflows` and Trigger.dev confined to thin task wrappers so it is replaceable. Confirm pricing/region at Phase 8.
 
 ## ADR-005 Postgres as the source of truth for run state — Accepted
 
@@ -58,7 +60,7 @@ Own thin `ModelProvider` interface; first adapter uses the official Anthropic SD
 
 ## ADR-008 Embeddings provider — Proposed
 
-Anthropic does not provide a first-party embeddings API; options: Voyage AI, OpenAI `text-embedding-3-*`, or Supabase built-in `gte-small` via Edge Functions. Decide in Phase 3 based on quality, cost, and EU data-handling; vector dimension in `knowledge_chunks` follows the choice.
+Anthropic does not provide a first-party embeddings API; options: Voyage AI, OpenAI `text-embedding-3-*`, or Supabase built-in `gte-small` via Edge Functions. Decide in Phase 4 based on quality, cost, and EU data-handling; vector dimension in `knowledge_chunks` follows the choice.
 
 ## ADR-009 Tool definitions in code, grants in the database — Accepted
 
@@ -66,9 +68,9 @@ Typed Zod schemas and risk levels are code (type-checked, reviewed, versioned). 
 
 ## ADR-010 Database environments for development and testing — Proposed
 
-No Docker locally. Proposal: keep `rnqrqconfbcrmszllxgu` as the main project; create a second Supabase project (or enable branching) for dev/test; CI uses `supabase start` in Docker. Needs owner decision before Phase 2 migrations run.
+No Docker locally. Proposal: keep `rnqrqconfbcrmszllxgu` as the main project; create a second Supabase project (or enable branching) for dev/test; CI uses `supabase start` in Docker. Needs owner decision before Phase 3 migrations run.
 
-## ADR-011 Integration credential storage in Supabase Vault — Accepted
+## ADR-011 Integration credential storage in Supabase Vault — Superseded by ADR-014
 
 OAuth tokens stored via `vault.create_secret`, accessed only by server code with the secret key through a `private` security-definer function scoped by org. `INTEGRATION_ENCRYPTION_KEY` exists only as a fallback if Vault is unsuitable for some credential type.
 
@@ -79,3 +81,30 @@ OAuth tokens stored via `vault.create_secret`, accessed only by server code with
 ## ADR-013 Deployment on Vercel — Proposed
 
 Web app on Vercel (EU region near Supabase), workers on Trigger.dev Cloud. Voice runtime (later) will need a long-lived-connection host and is out of scope here.
+
+## ADR-014 Application-level authenticated encryption for customer credentials — Accepted (Phase 2)
+
+**Context:** Customers' OAuth access/refresh tokens and API keys must be stored so Nexefiy can act on their behalf. ADR-011 proposed Supabase Vault. Vault decrypts inside the database for any role allowed to read `vault.decrypted_secrets`, so anyone holding database-level access (a leaked secret key, a SQL injection in a privileged function, a database dump) can also read every customer token.
+**Decision:** Encrypt in the application with AES-256-GCM (`src/lib/crypto/credential-encryption.ts`):
+- Keys live outside the database in `INTEGRATION_ENCRYPTION_KEYS` (a versioned keyring) with `INTEGRATION_ENCRYPTION_ACTIVE_KEY_ID` selecting the key for new writes.
+- Each ciphertext is a self-describing envelope `nxf1.<keyId>.<iv>.<ciphertext>.<tag>`, stored in `integration_connections.encrypted_credentials`.
+- Additional authenticated data binds the ciphertext to `organization_id`, `connection_id`, and purpose, so a ciphertext moved to another row or tenant fails authentication.
+- Rotation is incremental: add a key, make it active, re-encrypt rows lazily or with a job, retire the old key once no row references it.
+**Consequences:** Database compromise alone does not expose customer tokens; the keyring becomes a critical secret that must be backed up (losing it forces every customer to reconnect). Workers that decrypt need both `SUPABASE_SECRET_KEY` and the keyring. Supersedes ADR-011.
+
+## ADR-015 Anthropic as the initial AI model provider — Accepted (Phase 2)
+
+**Context:** One provider is implemented first; others plug into the `ModelProvider` interface (ADR-007).
+**Verified 2026-10-17** (Anthropic API reference bundled with Claude Code, cached 2026-10-06):
+- Models: `claude-opus-5-5` ($4 / $20 per million input/output tokens, 1M context), `claude-sonnet-5-5` ($2 / $10), `claude-haiku-5-5` ($0.10 / $0.50 for prompts up to 100K tokens).
+- Tool calling with `strict: true` schema enforcement; structured outputs via `output_config.format` / `messages.parse()`; streaming; prompt caching; Models API for live capability lookup.
+- Notes for the adapter (Phase 5): forced `tool_choice` (`any`/`tool`) is rejected on Opus 5.5 / Sonnet 5.5 — use `auto` + `strict` tools or structured outputs; thinking cannot be disabled on Opus 5.5 (tune `effort`, default `medium`); handle `stop_reason: "refusal"`.
+**Decision:** `AI_PROVIDER=anthropic` (default) with the official `@anthropic-ai/sdk`. Default model `claude-opus-5-5`; tier mapping (`deep`/`balanced`/`fast` → Opus 5.5 / Sonnet 5.5 / Haiku 5.5) stays configuration, confirmed against cost data in Phase 5. Only `ANTHROPIC_API_KEY` is required. `AI_PROVIDER=openai` is accepted by configuration but reported as "adapter not implemented" until an adapter exists.
+
+## ADR-016 Resend for transactional email — Accepted (Phase 2)
+
+**Decision:** Resend sends app email (invitations, approval notifications, run alerts) via `RESEND_API_KEY` + `EMAIL_FROM` on a verified subdomain (e.g. `mail.nexefiy.com`). Supabase Auth emails use Resend's SMTP relay configured in the Supabase dashboard, so one provider handles domain reputation. Email is optional at runtime: without it, email-dependent features fall back (invitation links can be copied from the UI) and say so.
+
+## ADR-017 Feature-gated environment configuration — Accepted (Phase 2)
+
+**Decision:** `src/lib/env` validates configuration at startup. Only the Supabase URL, publishable key, and (in production) app URL are required. Every other credential belongs to one feature; when it is missing or invalid, that feature reports `not_configured` / `misconfigured` / `blocked` and `requireFeature()` throws `FeatureUnavailableError` with setup instructions at the point of use, while the rest of the app keeps working. Any secret-looking value or name in a `NEXT_PUBLIC_*` variable stops startup. Messages name variables but never include values.

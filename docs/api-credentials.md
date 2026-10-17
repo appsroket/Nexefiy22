@@ -1,34 +1,34 @@
-# API Credentials
+# Credential Inventory
 
-What each external credential is, where to get it, where it may be used, and which phase needs it. **Values never go in this file** — put them in `.env.local` (local) and Vercel / Trigger.dev environment settings (deployed).
+Every external credential Nexefiy uses or may use, whether it has been selected, and when it's needed. Setup steps: [credential-setup.md](credential-setup.md). Variable details: [environment-variables.md](environment-variables.md). **No values belong in this file.**
 
-Legend — **Exposure:** `public` = may be shipped to browsers; `server` = server/worker only.
+Status: ✅ configured locally · ⬜ selected, not yet configured · ⏳ decision pending · ❌ not selected
 
-| Provider | Credential | Env var | Exposure | Obtain from | Needed by |
-|---|---|---|---|---|---|
-| Supabase | Project URL | `NEXT_PUBLIC_SUPABASE_URL` | public | Dashboard → Project Settings → API | Phase 2 ✅ configured |
-| Supabase | Publishable key | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | public | Dashboard → API Keys | Phase 2 ✅ configured |
-| Supabase | Secret key | `SUPABASE_SECRET_KEY` | server | Dashboard → API Keys → create secret key | Phase 2 |
-| Supabase | Database password | `SUPABASE_DB_PASSWORD` | server (CLI only) | Dashboard → Database settings | Phase 2 (migrations via CLI) |
-| Supabase | Personal access token | — (CLI `supabase login`) | developer machine | Account → Access tokens | Phase 2 |
-| Anthropic | API key | `ANTHROPIC_API_KEY` | server | console.anthropic.com | Phase 4 |
-| OpenAI (optional) | API key (embeddings fallback / alt provider) | `OPENAI_API_KEY` | server | platform.openai.com | Phase 3/4, only if chosen in ADR-008 |
-| Trigger.dev | Secret key per environment | `TRIGGER_SECRET_KEY` | server | Trigger.dev dashboard → API keys | Phase 7 |
-| Trigger.dev | Project ref | `TRIGGER_PROJECT_REF` | server | Trigger.dev project settings | Phase 7 |
-| Google Cloud | OAuth client id/secret (Gmail, Calendar) | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | server | Google Cloud Console → APIs & Services → Credentials | Phase 6 |
-| Slack | App client id/secret, signing secret | `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET` | server | api.slack.com/apps | Phase 6 |
-| HubSpot | Public app client id/secret | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | server | HubSpot developer account | Phase 6 |
-| Stripe | Publishable key | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | public | Stripe Dashboard → Developers → API keys | Phase 10 |
-| Stripe | Secret key (restricted key preferred) | `STRIPE_SECRET_KEY` | server | Stripe Dashboard | Phase 10 |
-| Stripe | Webhook signing secret | `STRIPE_WEBHOOK_SECRET` | server | Stripe Dashboard → Webhooks / Stripe CLI | Phase 10 |
-| Nexefiy | Integration encryption key | `INTEGRATION_ENCRYPTION_KEY` | server | Generate: `openssl rand -base64 32` | Phase 6 (only if a value is stored outside Vault) |
-| Sentry (optional) | DSN | `SENTRY_DSN` | public-ish | sentry.io | Phase 12 |
-| Telephony (post-MVP) | e.g. Twilio account SID/auth token | TBD | server | Provider console | Voice phase |
+| # | Provider | Credential(s) | Status | Exposure | Needed from phase | Disables when missing |
+|---|---|---|---|---|---|---|
+| A1 | Supabase | Project URL, publishable key | ✅ | public | 3 (app scaffold) | the whole app (required) |
+| A2 | Supabase | Secret key (`sb_secret_`) | ⬜ | server | 3 | workers, webhooks, billing sync |
+| A3 | Supabase | Legacy `service_role` JWT | ❌ not used (new key system) | server | — | — |
+| A4 | Supabase | Database password / CLI login | ⬜ | CLI only | 3 (migrations) | running migrations |
+| B1 | Anthropic | API key | ⬜ selected (ADR-015) | server | 5 (employees + model gateway) | AI employees, chat, NL workflow generation |
+| B2 | OpenAI | API key | ❌ not selected (interface allows later) | server | — | — |
+| C1 | Resend | API key, sender address, verified domain | ⬜ selected (ADR-016) | server | 3 (invitations) | invitation and notification email |
+| D1 | Stripe | Secret/restricted key, publishable key, webhook secret | ⬜ | server + public | 11 (billing) | subscriptions, checkout, portal |
+| E1 | Nexefiy | Credential-encryption keyring | ⬜ | server | 7 (integrations) | every OAuth integration |
+| E2 | Google Cloud | OAuth client id/secret (Gmail, Calendar) | ⬜ selected | server | 7 | Gmail and Calendar connections |
+| E3 | Slack | Client id/secret, signing secret | ⬜ selected | server | 7 | Slack connections and events |
+| E4 | HubSpot | Public app client id/secret | ⬜ selected (CRM) | server | 7 | HubSpot connections |
+| E5 | Trigger.dev | Secret key, project ref | ⬜ selected (ADR-004) | server | 8 (durable execution) | durable runs, waits, schedules |
+| E6 | Sentry | DSN | ⬜ optional | server | 12 (hardening) | error reporting |
+| E7 | Nexefiy | `CRON_SECRET` | ⬜ | server | 8 | cron routes (fail closed) |
+| — | Notion | Integration token / OAuth | ❌ not selected | — | — | — |
+| — | Telephony / voice (e.g. Twilio + voice-agent platform) | Account credentials | ❌ post-MVP, provider pending | — | 13+ | — |
+| — | Embeddings provider | API key | ⏳ ADR-008 | server | 4 (knowledge) | document embeddings, if a separate provider is chosen |
 
 ## Handling rules
 
-1. Use **test/sandbox** credentials for development (Stripe test mode, Google test users, HubSpot developer test account, Slack dev workspace).
-2. Store per-organization OAuth tokens in **Supabase Vault**, referenced by `integration_connections.vault_secret_id`. Never in plain columns, logs, task events, or model prompts.
-3. Rotate a credential immediately if it is pasted into a chat, commit, issue, or log. Supabase keys can be rotated independently under the new key system.
-4. Prefer restricted/limited-scope keys (Stripe restricted keys, minimal OAuth scopes).
-5. Each deployed environment (preview, production) gets its own credentials.
+1. Use **test/sandbox** credentials outside production: Stripe test mode, Google test users, HubSpot developer test account, a Slack dev workspace, a Resend test subdomain. Live Stripe keys are rejected outside production by validation.
+2. Each environment (development, preview, production) has its **own** credentials.
+3. Customer credentials (OAuth tokens) are encrypted with AES-256-GCM before storage (ADR-014). They never reach the browser, logs, task events, or model prompts.
+4. Prefer least privilege: Resend sending-access keys restricted to one domain, Stripe restricted keys, minimal OAuth scopes, per-environment Anthropic workspaces with spend limits.
+5. Rotate immediately if a credential is pasted into chat, a commit, an issue, or a log — see the [leaked credential checklist](credential-setup.md#leaked-credential-checklist).

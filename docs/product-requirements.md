@@ -47,7 +47,7 @@ Requirement IDs are stable; reference them in code comments, tests, and PRs. Pri
 | TOOL-1 | Every tool has a typed input/output schema (Zod), risk level, required scopes, and required integration. | P0 |
 | TOOL-2 | Tool calls are executed only by the server-side tool executor after authorization and policy checks. | P0 |
 | TOOL-3 | Idempotency keys on all external write tools. | P0 |
-| INT-1 | OAuth-based connection flow per organization; credentials encrypted (Vault) and never sent to the browser. | P0 |
+| INT-1 | OAuth-based connection flow per organization; credentials encrypted with application-level AES-256-GCM (ADR-014) and never sent to the browser. | P0 |
 | INT-2 | MVP adapters: Gmail, Google Calendar, Slack, HubSpot, generic outbound webhook. | P0 |
 | INT-3 | Inbound triggers via verified webhooks (signature validation) and polling where webhooks are unavailable. | P0 |
 | INT-4 | Connection health status; token refresh; clear "reconnect required" state. | P0 |

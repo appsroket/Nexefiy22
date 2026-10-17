@@ -80,7 +80,7 @@ interface ModelProvider {
 ```
 
 - Requests use a provider-neutral shape (messages, tool definitions as JSON Schema derived from Zod, max tokens, temperature).
-- Model tiers map to concrete models in config, not code: initial mapping `deep → claude-opus-5-5`, `balanced → claude-sonnet-5-5`, `fast → claude-haiku-5-5` (verify availability and pricing in Phase 4).
+- Model tiers map to concrete models in config, not code: initial mapping `deep → claude-opus-5-5`, `balanced → claude-sonnet-5-5`, `fast → claude-haiku-5-5` (verify availability and pricing in Phase 5).
 - Gateway responsibilities: retries with backoff on retryable errors, timeout, token and cost accounting, structured-output validation, provider fallback (optional, per tier).
 - Model output is parsed and validated; malformed tool calls are returned to the model as errors, never executed.
 

@@ -1,0 +1,29 @@
+{
+  "name": "nexefiy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nexefiy — supervised AI workforce platform",
+  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "env:check": "tsx scripts/check-env.ts",
+    "env:check:connectivity": "tsx scripts/check-env.ts --connectivity",
+    "env:generate-key": "tsx scripts/generate-encryption-key.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}

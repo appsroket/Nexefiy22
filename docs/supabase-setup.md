@@ -18,10 +18,10 @@ Supabase now issues two key types; Nexefiy uses the **new** ones.
 | Key | Format | Where used | Notes |
 |---|---|---|---|
 | Publishable key | `sb_publishable_…` | Browser + server (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) | Safe to expose; all access governed by RLS. Configured in `.env.local`. |
-| Secret key | `sb_secret_…` | Server/worker only (`SUPABASE_SECRET_KEY`) | Bypasses RLS. Needed from Phase 2. Create in Dashboard → Project Settings → API Keys. Never `NEXT_PUBLIC_`. |
-| Legacy `anon` / `service_role` JWT keys | `eyJ…` | Not used | Still enabled on the project. Plan: disable legacy keys once the app runs entirely on new keys (Phase 2 exit). |
+| Secret key | `sb_secret_…` | Server/worker only (`SUPABASE_SECRET_KEY`) | Bypasses RLS. Needed from Phase 3. Create in Dashboard → Project Settings → API Keys. Never `NEXT_PUBLIC_`. |
+| Legacy `anon` / `service_role` JWT keys | `eyJ…` | Not used | Still enabled on the project. Plan: disable legacy keys once the app runs entirely on new keys (Phase 3 exit). |
 
-## Clients (implemented in Phase 2)
+## Clients (implemented in Phase 3)
 
 | Client | File | Key | Use |
 |---|---|---|---|
@@ -32,10 +32,10 @@ Supabase now issues two key types; Nexefiy uses the **new** ones.
 
 ## Auth configuration (Dashboard → Authentication)
 
-To configure in Phase 2:
+To configure in Phase 3:
 - Site URL: `http://localhost:3000` for dev; production domain later.
-- Redirect URLs: `http://localhost:3000/**`, Vercel preview pattern, production URL.
-- Email confirmations: on. Custom SMTP before launch (Supabase default SMTP is rate-limited).
+- Redirect URLs: `http://localhost:3000/**`, Vercel preview pattern, production URL. The app's callback route is `/auth/callback` (`src/lib/config/endpoints.ts`).
+- Email confirmations: on. Custom SMTP via Resend before launch (Supabase default SMTP is rate-limited) — settings in [credential-setup.md](credential-setup.md#c-email-resend).
 - Minimum password length 10; leaked-password protection on (if available on plan).
 - MFA (TOTP) enabled for P1.
 

@@ -2,13 +2,18 @@
 
 Universal AI workforce and business operations platform: configure AI employees, connect business apps, coordinate work through workflows, and supervise execution with human approvals.
 
-**Status:** Phase 1 — specification and architecture only. There is no runnable application yet.
+**Status:** Phase 2 — specification plus the environment/credential foundation. There is no runnable web application yet.
 
 - Project instructions: [CLAUDE.md](CLAUDE.md)
 - Specification and architecture: [docs/](docs/)
+- Credentials: [inventory](docs/api-credentials.md) · [setup guide](docs/credential-setup.md) · [variable reference](docs/environment-variables.md)
 - Roadmap: [docs/implementation-roadmap.md](docs/implementation-roadmap.md)
 
-## Local setup (from Phase 2)
+## Local setup
 
-1. Copy `.env.example` to `.env.local` and fill in values (see [docs/environment-variables.md](docs/environment-variables.md)).
-2. Install dependencies and run the dev server — commands are added in Phase 2.
+Requires Node.js ≥ 20.9 (developed on Node 24).
+
+1. Install dependencies: `npm install`
+2. Copy `.env.example` to `.env.local` and fill in at least the core Supabase values ([setup guide](docs/credential-setup.md)).
+3. Check configuration (prints no secrets): `npm run env:check`
+4. Run tests: `npm test` and `npm run typecheck`

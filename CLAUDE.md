@@ -12,16 +12,25 @@ Start with [docs/product-vision.md](docs/product-vision.md) and [docs/system-arc
 
 ## Current status
 
-- **Phase:** 1 — Foundation and specification (complete, pending review).
-- **Code:** none yet. No application, migrations, or tests exist. Do not claim otherwise.
+- **Phase:** 2 — Environment configuration and credentials (complete, pending review). Phase 1 (specification) complete.
+- **Code:** environment/credential foundation only — `src/lib/env` (validated config + feature gating), `src/lib/crypto` (customer-credential encryption), `src/lib/logging/redact.ts`, `src/lib/config/endpoints.ts`, `scripts/`, and Vitest tests. **No Next.js app, UI, routes, migrations, or integrations exist yet.** Do not claim otherwise.
 - **Supabase:** project `rnqrqconfbcrmszllxgu` (eu-north-1, Postgres 17) is empty — no tables, no migrations.
-- **Next phase:** Phase 2 — application scaffold, auth, organizations, RLS. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
+- **Next phase:** Phase 3 — application scaffold, auth, organizations, RLS. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
 
 ## Stack (verified versions in docs/architecture-decisions.md, ADR-002)
 
-Next.js App Router · React · strict TypeScript · Tailwind CSS + shadcn/ui · Supabase Auth/Postgres/Storage/Vault with RLS · Zod · provider-independent model interface (Anthropic first) · Trigger.dev for durable execution · React Flow (`@xyflow/react`) · Stripe · Vercel.
+Next.js App Router · React · strict TypeScript · Tailwind CSS + shadcn/ui · Supabase Auth/Postgres/Storage with RLS · Zod · provider-independent model interface (Anthropic first, ADR-015) · Resend email (ADR-016) · Trigger.dev for durable execution · React Flow (`@xyflow/react`) · Stripe · Vercel.
 
-## Repository layout (target, created in Phase 2)
+## Configuration and secrets
+
+- Read configuration only through `src/lib/env`: `getServerEnv()` / `requireFeature('<feature>')` from `@/lib/env/server` on the server, `getPublicEnv()` from `@/lib/env/public` in client code. Never read `process.env` directly elsewhere.
+- Only the core Supabase values (and the app URL in production) are required. Every other credential gates one feature: call `requireFeature()` at the point of use so a missing optional credential disables only that feature.
+- New variables: add them to `src/lib/env/catalog.ts`, `core.ts`, `.env.example`, and the docs (see docs/environment-variables.md → "Adding a variable").
+- Customer integration credentials are stored only as `encryptCredential()` envelopes (ADR-014).
+- Never log keys, auth headers, tokens, codes, or raw webhook payloads; pass anything that might contain them through `redact()` from `@/lib/logging/redact`.
+- Test fixtures build fake credentials at runtime (`tests/helpers/env-fixtures.ts`) — never commit realistic-looking keys.
+
+## Repository layout (target; `src/lib`, `scripts`, `tests` exist, the rest arrives in Phase 3+)
 
 ```
 src/
@@ -58,12 +67,21 @@ Modules: `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `model
 
 ## Commands
 
-None yet — added in Phase 2 (`npm run dev`, `lint`, `typecheck`, `test`, `test:e2e`, `db:*`).
+| Command | Purpose |
+|---|---|
+| `npm run typecheck` | `tsc --noEmit` (strict) |
+| `npm test` | Vitest suite |
+| `npm run env:check` | Which features are configured; prints no secrets. `--strict` exits 1 on misconfiguration |
+| `npm run env:check:connectivity` | Plus read-only provider checks (Supabase, Anthropic, Resend, Stripe) |
+| `npm run env:generate-key` | New entry for the credential-encryption keyring |
+
+Added in Phase 3: `dev`, `build`, `lint`, `test:e2e`, `db:*`.
 
 ## Environment
 
 - No Docker on the primary dev machine → no local Supabase stack. RLS/pgTAP tests run against a Supabase branch or a dedicated dev project (see [docs/testing-strategy.md](docs/testing-strategy.md)).
 - Supabase CLI is available via `npx supabase`.
+- Node 24; TypeScript 7.0 (native compiler) — verified with `tsc` and Vitest, not yet with Next.js.
 - GitHub remote: `https://github.com/appsroket/Nexefiy.git` (private), default branch `main`.
 
 ## Documentation map
@@ -74,7 +92,8 @@ None yet — added in Phase 2 (`npm run dev`, `lint`, `typecheck`, `test`, `test
 | Architecture | docs/system-architecture.md, docs/architecture-decisions.md |
 | Data | docs/database-design.md, docs/supabase-setup.md |
 | Employees and orchestration | docs/ai-employee-architecture.md, docs/agent-orchestration.md |
-| Integrations | docs/integration-architecture.md, docs/api-credentials.md |
+| Integrations | docs/integration-architecture.md |
+| Credentials | docs/api-credentials.md (inventory), docs/credential-setup.md (setup, redirect URIs, webhooks, scopes, rotation) |
 | Security | docs/security-and-governance.md |
 | Workflows | docs/workflow-editor.md |
 | Billing | docs/billing-and-entitlements.md |

@@ -34,7 +34,7 @@ Principle: **security boundaries are tested as rigorously as features.** A phase
 
 ## 3. Environments
 
-No Docker on the primary dev machine, so the Supabase local stack is unavailable. Options (decide in Phase 2, ADR-010):
+No Docker on the primary dev machine, so the Supabase local stack is unavailable. Options (decide in Phase 3, ADR-010):
 - **Preferred:** a dedicated Supabase **dev/test project** (or Supabase branching) for integration and pgTAP tests, reset via migrations + seed.
 - CI (GitHub Actions, Linux) *can* run `supabase start` with Docker, giving isolated ephemeral databases per run.
 
