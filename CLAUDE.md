@@ -12,7 +12,7 @@ Start with [docs/product-vision.md](docs/product-vision.md) and [docs/system-arc
 
 ## Current status
 
-- **Phase:** 5 — Public website (complete, pending review). Phases 1 (spec), 2 (environment), 3 (database) and 4 (application shell) complete; Phases 4–5 are not committed yet.
+- **Phase:** 5 — Public website (complete, pending review). Phases 1 (spec), 2 (environment), 3 (database) and 4 (application shell) complete.
 - **Code:** Next.js app with the public website at `/` (`src/app/(site)`, `src/modules/marketing`) and the signed-in application shell under `/app` (`src/app/app`, `src/modules/app-shell`, `src/modules/governance`); shared UI in `src/components`; `src/lib` (env, crypto, logging, Supabase clients, forms, list params, status labels); `supabase/migrations` (12 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests.
 - **Not built:** sign-in/sign-up (the auth pages are honest placeholders), AI employees, integrations, workflows, workers, billing. The app shell renders signed-out unless a Supabase session exists. Do not claim otherwise.
 - **Website honesty:** every capability shown publicly lives in `src/modules/marketing/domain` with a status (`built` / `first_release` / `later`). Move an item to `built` only in the change that ships and tests it, and add its evidence to `tests/app/site-content.test.ts`. Never add testimonials, customer logos, customer or integration counts, prices, or outcome figures.
