@@ -35,6 +35,7 @@ Latest npm versions observed on 2026-10-17:
 | eslint | 10.13.0 | |
 
 **Decision:** Use these majors, pin exact versions in `package.json`, read each package's current docs before use.
+**Installed (Phase 4):** see ADR-019 for the versions actually pinned and the TypeScript 6/7 arrangement.
 
 ## ADR-003 Supabase as data, auth, storage, and secrets platform — Accepted
 
@@ -111,3 +112,29 @@ Web app on Vercel (EU region near Supabase), workers on Trigger.dev Cloud. Voice
 ## ADR-017 Feature-gated environment configuration — Accepted (Phase 2)
 
 **Decision:** `src/lib/env` validates configuration at startup. Only the Supabase URL, publishable key, and (in production) app URL are required. Every other credential belongs to one feature; when it is missing or invalid, that feature reports `not_configured` / `misconfigured` / `blocked` and `requireFeature()` throws `FeatureUnavailableError` with setup instructions at the point of use, while the rest of the app keeps working. Any secret-looking value or name in a `NEXT_PUBLIC_*` variable stops startup. Messages name variables but never include values.
+
+## ADR-018 Rendering and caching: Cache Components off — Accepted (Phase 4)
+
+**Context:** Next.js 16 can cache rendered output and data (`cacheComponents`, `'use cache'`). Signed-in pages show one workspace's data; a cache key that misses the user or workspace would show it to someone else.
+**Decision:** Cache Components stay off. Every `/app` route reads cookies and renders per request; responses that set auth cookies carry no-cache headers. Public website pages hold no tenant data and are prerendered at build time.
+**Consequences:** No cross-tenant cache leaks by construction; signed-in pages pay a render per request. Revisit only with tenant-scoped cache keys and tests that prove isolation.
+
+## ADR-019 Dependency pinning and TypeScript 6/7 side by side — Accepted (Phase 4)
+
+**Decision:**
+- Exact versions only. At install time choose the newest release that is at least about a week old, so a compromised or broken release has time to be caught. Installed in Phase 4: `next` 16.4.0, `react`/`react-dom` 19.3.0, `@supabase/ssr` 0.12.7, `radix-ui` 1.7.0, `lucide-react` 1.54.0, `tailwindcss` 4.3.3, `shadcn` 4.21.4, `eslint` 10.12.0, `eslint-config-next` 16.4.0.
+- typescript-eslint does not support the TypeScript 7 JS API. Following Microsoft's side-by-side guidance, `@typescript/native` (TypeScript 7.0.2) provides the `tsc` command and the `typescript` package name is aliased to `@typescript/typescript6` (6.0) for tools that load the compiler API.
+**Consequences:** `tsc --noEmit`, ESLint, `next build` and Vitest all pass. Drop the alias when typescript-eslint supports TypeScript 7.
+
+## ADR-020 Public website and application in one Next.js app — Accepted (Phase 5)
+
+**Context:** The public website needs `/`, which the application shell used for its overview.
+**Decision:**
+- The website lives in `src/app/(site)` at `/`; the signed-in application moved under `/app` (`APP_HOME`). One deployment and one origin: `NEXT_PUBLIC_APP_URL` is the site's address (e.g. `https://nexefiy.com`).
+- The proxy (session refresh) runs only for `/app`, so website pages stay static.
+- Website content comes from `src/modules/marketing/domain`, where every capability has a status: `built`, `first_release` or `later`. Tests require repository evidence for each `built` claim and reject testimonials, customer logos, customer or integration counts, prices, and outcome figures.
+- Public pages are indexable only when `APP_ENV=production`; account pages, legal drafts and `/app` are never indexed. `robots.txt` and `sitemap.xml` are generated from the same page list.
+- The contact form delivers each message by email (Resend) to `CONTACT_FORM_TO` (feature `contactForm`, which depends on `email`). Messages are not stored and their content is never logged. Without configuration the form is shown disabled and the server refuses submissions.
+
+**Alternatives:** a separate marketing site (another repository or a CMS) adds moving parts before there is content to manage; an `app.` subdomain via host-based routing in the proxy remains possible later without moving pages again.
+**Consequences:** Links into the application use `/app/...`. A CMS or separate site can replace `(site)` later; the domain data shows what must be carried over.

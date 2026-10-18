@@ -12,8 +12,10 @@ Start with [docs/product-vision.md](docs/product-vision.md) and [docs/system-arc
 
 ## Current status
 
-- **Phase:** 3 — Database schema, RLS, and security tests (complete, pending review). Phases 1 (spec) and 2 (environment) complete.
-- **Code:** `src/lib/env` (validated config + feature gating), `src/lib/crypto`, `src/lib/logging/redact.ts`, `src/lib/config`, `src/lib/supabase` (generated types + typed admin client), `supabase/migrations` (12 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests. **No Next.js app, UI, routes, workers, or integrations exist yet.** Do not claim otherwise.
+- **Phase:** 5 — Public website (complete, pending review). Phases 1 (spec), 2 (environment), 3 (database) and 4 (application shell) complete; Phases 4–5 are not committed yet.
+- **Code:** Next.js app with the public website at `/` (`src/app/(site)`, `src/modules/marketing`) and the signed-in application shell under `/app` (`src/app/app`, `src/modules/app-shell`, `src/modules/governance`); shared UI in `src/components`; `src/lib` (env, crypto, logging, Supabase clients, forms, list params, status labels); `supabase/migrations` (12 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests.
+- **Not built:** sign-in/sign-up (the auth pages are honest placeholders), AI employees, integrations, workflows, workers, billing. The app shell renders signed-out unless a Supabase session exists. Do not claim otherwise.
+- **Website honesty:** every capability shown publicly lives in `src/modules/marketing/domain` with a status (`built` / `first_release` / `later`). Move an item to `built` only in the change that ships and tests it, and add its evidence to `tests/app/site-content.test.ts`. Never add testimonials, customer logos, customer or integration counts, prices, or outcome figures.
 - **Supabase:** project `rnqrqconfbcrmszllxgu` (eu-north-1, Postgres 17) is the **development** database (ADR-010): 33 tables, RLS everywhere, no application data. Staging/production projects do not exist yet.
 - **Next phase:** App shell & auth. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
 
@@ -42,6 +44,9 @@ Next.js App Router · React · strict TypeScript · Tailwind CSS + shadcn/ui · 
 ```
 src/
   app/                      Next.js routes (UI + route handlers). Thin: delegate to modules.
+    (site)/                 Public website at "/" (static pages).
+    app/                    Signed-in application under "/app".
+  components/               Shared UI (components/ui = shadcn/ui primitives).
   modules/<module>/
     domain/                 Pure types, Zod schemas, business rules. No I/O.
     server/                 Server-only services and repositories ("server-only" import).
@@ -55,7 +60,7 @@ tests/                      Vitest unit/integration tests and Playwright e2e.
 docs/                       Specification and decisions.
 ```
 
-Modules: `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `models`, `skills` (typed tools), `integrations`, `workflows`, `governance` (approvals + policy), `observability` (tasks + audit), `analytics`, `billing`. A module may import another module's `domain` exports and public `server` service functions only — never its internals or tables directly.
+Modules: `marketing` (public website), `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `models`, `skills` (typed tools), `integrations`, `workflows`, `governance` (approvals + policy), `observability` (tasks + audit), `analytics`, `billing`. A module may import another module's `domain` exports and public `server` service functions only — never its internals or tables directly.
 
 ## Permanent engineering rules
 
@@ -89,13 +94,20 @@ Modules: `app-shell`, `identity` (auth + orgs), `knowledge`, `employees`, `model
 | `npx supabase db push --linked --dry-run` | Preview pending migrations (then run without `--dry-run`) |
 | `npx supabase test db --linked` | Run the pgTAP security suite (requires `supabase login` + `link`) |
 
-Added with the app shell: `dev`, `build`, `lint`, `test:e2e`. Database workflow details: docs/supabase-setup.md.
+| `npm run dev` | Next.js dev server on http://localhost:3000 (website at `/`, application at `/app`) |
+| `npm run build` | Production build (`next build` does not lint; run `npm run lint` too) |
+| `npm run lint` | ESLint (flat config; bans `process.env` outside `src/lib/env`) |
+| `npm run check:bundle` | After a build: scans browser assets for secrets and server-only variable names |
+
+Planned: `test:e2e` (Playwright). Database workflow details: docs/supabase-setup.md.
 
 ## Environment
 
 - No Docker on the primary dev machine → no local Supabase stack. RLS/pgTAP tests run against a Supabase branch or a dedicated dev project (see [docs/testing-strategy.md](docs/testing-strategy.md)).
 - Supabase CLI is available via `npx supabase`.
-- Node 24; TypeScript 7.0 (native compiler) — verified with `tsc` and Vitest, not yet with Next.js.
+- Node 24. TypeScript runs side by side (ADR-019): `tsc` is TypeScript 7.0.2 (`@typescript/native`), while the `typescript` package name is aliased to TypeScript 6.0 for tools that need the JS API (typescript-eslint). Verified with `tsc`, ESLint, `next build`, and Vitest.
+- Dependencies are pinned to exact versions, choosing the newest release that is at least about a week old (ADR-019).
+- Rendering: Cache Components are off; `/app` routes are dynamic and the public website is static (ADR-018, ADR-020).
 - GitHub remote: `https://github.com/appsroket/Nexefiy.git` (private), default branch `main`.
 
 ## Documentation map

@@ -31,6 +31,7 @@ export const FEATURE_VARS: Record<OptionalFeatureKey, RawEnv> = {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: fake('pk_test_'),
     STRIPE_WEBHOOK_SECRET: fake('whsec_'),
   },
+  contactForm: { CONTACT_FORM_TO: 'inbox@example.com' },
   credentialEncryption: {
     INTEGRATION_ENCRYPTION_KEYS: `k1:${testKey(1)}`,
     INTEGRATION_ENCRYPTION_ACTIVE_KEY_ID: 'k1',

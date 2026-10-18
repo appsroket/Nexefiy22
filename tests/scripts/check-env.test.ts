@@ -25,6 +25,7 @@ function run(env: Record<string, string | undefined>, args: string[] = []) {
     env: {
       PATH: process.env.PATH,
       SystemRoot: process.env.SystemRoot,
+      NODE_ENV: 'test',
       ...blankFeatureVars,
       SUPABASE_SERVICE_ROLE_KEY: '',
       OPENAI_API_KEY: '',
@@ -54,7 +55,7 @@ describe('npm run env:check', () => {
   it('never prints secret values', () => {
     const { code, output } = run(fullEnv() as Record<string, string>)
     expect(code).toBe(0)
-    expect(output).toContain('13 configured')
+    expect(output).toContain('14 configured')
     for (const secret of fixtureSecretValues()) expect(output).not.toContain(secret)
   }, 60_000)
 

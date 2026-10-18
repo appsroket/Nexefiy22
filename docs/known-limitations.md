@@ -2,6 +2,27 @@
 
 Honest list of what does not exist or is unverified. Update every phase.
 
+## As of Phase 5 (2026-10-18)
+
+### Implemented and verified
+- **Application shell** (Phase 4) under `/app`: navigation, workspace switcher, account and notification menus, reusable components, error boundaries, read-only approvals list, overview counts. Verified with `tsc`, ESLint, `next build`, the bundle secret scan and Vitest. Only the signed-out state has been seen in a browser.
+- **Public website** (Phase 5) at `/`: every page renders at 375 px and at desktop width without horizontal scrolling (dev server, 2026-10-18); the mobile menu moves focus in and returns it on Escape; the contact form shows its disabled state and the server refuses submissions while delivery isn't configured.
+
+### Website limitations
+- **Contact form not live:** `RESEND_API_KEY`, `EMAIL_FROM` and `CONTACT_FORM_TO` aren't configured, so the form is disabled. Delivery to Resend is covered only by tests with a fake `fetch`; no real email has been sent.
+- **Rate limiting is per server instance** (in memory): it resets on deploy and isn't shared across instances. Replace it with a shared store in the hardening phase.
+- **Sign-in and sign-up pages are placeholders** that explain accounts aren't open; they link to the contact form and the signed-out workspace.
+- **Legal pages are unreviewed drafts** with placeholders (company name, address, jurisdiction, retention periods, contacts). They are marked "not in effect" and are noindex.
+- **No social preview image** (Open Graph image) and no analytics.
+- **No automated accessibility scan** (axe) or Playwright tests yet; keyboard behaviour was checked by hand on key flows only.
+- The website shows no prices because pricing isn't decided.
+
+### Application limitations
+- **No authentication**, so the signed-in shell (workspace switcher with real workspaces, notifications, approvals data) has not been exercised end to end.
+- `npm audit` reports 5 high-severity findings in the lint toolchain (`braces` via `fast-glob` in `@next/eslint-plugin-next`); development-only. The automatic fix would downgrade `eslint-config-next`.
+- npm warns that the install scripts of `esbuild` and `unrs-resolver` are not approved; build, lint and tests work without them.
+- No CI pipeline yet.
+
 ## As of Phase 3 (2026-10-17)
 
 ### Implemented and verified
@@ -12,7 +33,7 @@ Honest list of what does not exist or is unverified. Update every phase.
 - Generated TypeScript types and a typed admin client (`src/lib/supabase/admin.ts`, not yet called by any route).
 
 ### Not implemented
-- **No Next.js application yet.** No UI, routes, middleware, user-session Supabase clients, or workers.
+- ~~No Next.js application yet.~~ Superseded: the application shell (Phase 4) and website (Phase 5) exist; workers still don't.
 - Endpoint paths in `src/lib/config/endpoints.ts` are reserved, not implemented.
 - No Storage bucket or storage policies yet (knowledge phase).
 - No integrations, billing, model adapter, or embedding client. `requireFeature()` returning a config means only that credentials are present and well-formed.
@@ -33,7 +54,6 @@ Honest list of what does not exist or is unverified. Update every phase.
 - `npm install` warns that `esbuild`'s install script is not approved under npm's script policy; Vitest and tsx work without it.
 
 ### Unverified decisions
-- TypeScript 7 with Next.js 16 and ESLint (verified only with `tsc` and Vitest).
 - Trigger.dev pricing/EU region (ADR-004).
 - Pricing and plan quotas (plans seeded with `NULL` prices).
 - Final MVP integration list.

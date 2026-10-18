@@ -168,6 +168,7 @@ const CHECKS: Partial<Record<FeatureKey, (env: ServerEnv) => Promise<CheckResult
 }
 
 const NO_CHECK: Partial<Record<FeatureKey, string>> = {
+  contactForm: 'local only — messages are delivered with the email feature',
   credentialEncryption: 'local only — keyring parsed and validated',
   googleIntegration: 'format only — verified by completing an OAuth connection',
   slackIntegration: 'format only — verified by completing an OAuth connection',

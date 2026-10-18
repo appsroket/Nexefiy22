@@ -30,7 +30,8 @@ Nexefiy is a **modular monolith** (one Next.js application) plus a **durable exe
 
 | # | Module | Folder | Responsibilities | Owns tables |
 |---|---|---|---|---|
-| 1 | Application interface | `app/`, `modules/app-shell` | Routing, layouts, org switcher, navigation, design system. | — |
+| 0 | Public website | `app/(site)`, `modules/marketing` | Public pages at `/`, capability status model, contact form (email). | — |
+| 1 | Application interface | `app/app`, `modules/app-shell` | Signed-in application under `/app`: layouts, org switcher, navigation, design system. | — |
 | 2 | Identity & organizations | `modules/identity` | Auth session, profiles, orgs, memberships, invitations, roles. | `profiles`, `organizations`, `organization_members`, `organization_invitations` |
 | 3 | Business context & knowledge | `modules/knowledge` | Business profile, documents, chunking, embeddings, retrieval. | `business_profiles`, `knowledge_collections`, `knowledge_documents`, `knowledge_chunks` |
 | 4 | AI employee configuration | `modules/employees` | Templates, employees, versions, grants. | `employee_templates`, `employees`, `employee_versions`, `employee_tool_grants`, `employee_knowledge_grants` |

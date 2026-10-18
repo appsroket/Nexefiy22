@@ -8,7 +8,9 @@ Each phase ends with a stop-and-report: files changed, tests executed, results, 
 P1 Foundation ✅
  └─ P2 Environment configuration & credentials ✅
      └─ P3 Database schema, RLS & security tests ✅
-         └─ App shell & auth
+         └─ P4 Application shell ✅, P5 Public website ✅
+             └─ Auth & organizations
+                 (Knowledge, AI employees and Tools below all need sign-in)
              ├─ Knowledge
              ├─ AI employees & model gateway ─────┐
              │    (needs Knowledge for retrieval)  │
@@ -31,12 +33,14 @@ Completed phases are numbered in the order the implementation prompts arrived. U
 | **1** | Foundation & spec | `CLAUDE.md`, `docs/*`, env template, git remote | Owner review |
 | **2** | Environment configuration & credentials | Credential inventory, `.env.example`, validated env module (`src/lib/env`), feature gating, credential encryption (AES-256-GCM keyring), log redaction, `npm run env:check`, setup guide | Vitest suite; Supabase connectivity check |
 | **3** | Database schema, RLS & security tests | 12 migrations (33 tables, RLS + explicit grants everywhere, versioned JSON schemas, approval binding, audit log, RPCs), generated types, typed admin client, 173 pgTAP tests | pgTAP suite run against the dev project; Supabase advisors; Vitest static checks |
+| **4** | Application shell | Next.js 16 + Tailwind/shadcn, `@supabase/ssr` clients and session proxy, responsive navigation, workspace switcher, account and notification menus, reusable tables/forms/dialogs/filters/states, error boundaries, read-only approvals list, real overview counts | `tsc`, ESLint, `next build`, bundle secret scan, Vitest. Not verified end to end while signed in (no auth yet) |
+| **5** | Public website | Home, AI employees, use cases, integrations, security, pricing, getting started, contact (email delivery, feature-gated), sign-in/sign-up entry points, draft legal pages; built/planned status model; metadata, sitemap, robots; application moved to `/app` (ADR-020) | Vitest (links, honesty rules, metadata, contact handling), `next build`, bundle scan, browser check at 375 px and desktop |
 
 ## Upcoming (in dependency order)
 
 | Phase | Goal | Key deliverables | Exit criteria | Prerequisites |
 |---|---|---|---|---|
-| **App shell & auth** | Runnable Next.js app | Next.js + Tailwind/shadcn, `@supabase/ssr` clients wired to `src/lib/env`, auth pages, org create/switch/invite UI (using the RPCs), roles in UI, CI (typecheck/lint/test + `supabase test db`) | Auth flows work end-to-end; two-org isolation e2e passes; no secrets in bundle | `SUPABASE_SECRET_KEY`, Supabase CLI login, Resend (invitation email) |
+| **Auth & organizations** | People can sign in | Sign-up/sign-in pages replacing the Phase 5 placeholders, auth callback route (add it to the proxy matcher), org create/invite UI (using the RPCs), roles in UI, CI (typecheck/lint/test/build/bundle scan + `supabase test db`), Playwright | Auth flows work end-to-end; two-org isolation e2e passes; no secrets in bundle | `SUPABASE_SECRET_KEY`, Supabase CLI login, Resend (invitation email) |
 | **Knowledge** | Business context | Business profile UI, storage bucket + policies, upload, parsing, chunking, Voyage embeddings, retrieval | Upload → retrieve cited chunks; cross-org storage access denied | `VOYAGE_API_KEY` |
 | **AI employees & model gateway** | Working employees | Templates, employee CRUD + versions UI, grants, `ModelGateway` + Anthropic adapter, chat (read-only tools) | Cited answer from Support employee; usage + cost recorded | `ANTHROPIC_API_KEY` |
 | **Tools, policy & approvals** | Supervised actions | Tool registry + executor, policy engine, approval inbox (`decide_approval`), kill switches, limits | Tool-executor security suite passes; rejection prevents execution | AI employees |
@@ -57,6 +61,6 @@ Completed phases are numbered in the order the implementation prompts arrived. U
 | Durable engine lock-in / pricing | Medium | Keep orchestration logic in `modules/workflows`; Trigger.dev only in thin task wrappers (ADR-004) |
 | LLM cost overruns | Medium | Tiered models, per-task/org limits, caching, metering |
 | RLS mistakes | Critical | Helper functions, pgTAP suite per table, advisors after each migration |
-| Toolchain churn (TypeScript 7, Next 16, Tailwind 4) | Medium | Pin versions; TypeScript 7 verified with tsc + Vitest; verify with Next.js in the App shell phase (ADR-002) |
+| Toolchain churn (TypeScript 7, Next 16, Tailwind 4) | Medium | Pin versions; TypeScript 7 `tsc` with a TypeScript 6 alias for ESLint (ADR-019); verified with `next build` |
 | No local Docker → slower DB testing | Low/Med | pgTAP runs against the dev project in rolled-back transactions; Docker-based `supabase test db` in CI |
 | Scope creep across 11 employee categories | High | Shared runtime; ship 3 templates first; others are config |

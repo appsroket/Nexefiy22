@@ -53,6 +53,7 @@ Exposure: **public** = inlined into browser bundles (must never be secret) · **
 | `VOYAGE_API_KEY` | embeddings | server | **yes** | for knowledge indexing and search | — |
 | `RESEND_API_KEY` | email | server | **yes** | for email | `re_…` |
 | `EMAIL_FROM` | email | server | no | for email | `Name <a@domain>` or `a@domain` |
+| `CONTACT_FORM_TO` | contactForm | server | no | for the website contact form (needs email) | `a@domain` |
 | `STRIPE_SECRET_KEY` | billing | server | **yes** | for billing | `sk_/rk_` + `test_/live_` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | billing | public | no | for billing | `pk_test_…` / `pk_live_…` |
 | `STRIPE_WEBHOOK_SECRET` | billing | server | **yes** | for billing | `whsec_…` |

@@ -26,7 +26,7 @@ npm run env:check:connectivity
 |---|---|---|---|
 | Where values live | `.env.local` | Vercel → Environment Variables → *Preview* | Vercel → Environment Variables → *Production* |
 | `APP_ENV` | auto (`development`) | auto from `VERCEL_ENV` | auto from `VERCEL_ENV` |
-| `NEXT_PUBLIC_APP_URL` | defaults to `http://localhost:3000` | defaults to `https://$VERCEL_URL`; set a stable alias for OAuth | **required**, e.g. `https://app.nexefiy.com` |
+| `NEXT_PUBLIC_APP_URL` | defaults to `http://localhost:3000` | defaults to `https://$VERCEL_URL`; set a stable alias for OAuth | **required**, e.g. `https://nexefiy.com` (the website and the application share one origin, ADR-020) |
 | Supabase | dev/test project (ADR-010) | dev/test project or a Supabase branch | production project |
 | Stripe | test mode (`sk_test_`) | test mode | live mode (`sk_live_`/`rk_live_`) — live keys are **rejected** elsewhere |
 | OAuth apps (Google/Slack/HubSpot) | separate dev app, localhost redirects | dev app, stable preview URL | production app, production redirects |
@@ -145,6 +145,16 @@ npm run env:check -- --connectivity --send-test-email
 - Resend test addresses for later integration tests: `delivered@resend.dev`, `bounced@resend.dev`, `complained@resend.dev`.
 
 **Rotation:** create a new sending key → deploy → verify → delete the old key.
+
+### C2. Website contact form
+
+| Variable | Exposure | Required for the contact form |
+|---|---|---|
+| `CONTACT_FORM_TO` | server | yes — the inbox that receives messages |
+
+The public contact form (`/contact`) delivers each message as an email from `EMAIL_FROM` to `CONTACT_FORM_TO`, with the sender's address as reply-to. It needs the email feature above. Without both, the form is shown disabled with an explanation, and submissions are refused on the server. Messages are not stored in the database and their content is never logged.
+
+To test delivery without reaching a person, set `CONTACT_FORM_TO=delivered@resend.dev`.
 
 ## D. Billing (Stripe)
 

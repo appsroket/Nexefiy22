@@ -19,6 +19,7 @@ export type FeatureKey =
   | 'ai'
   | 'embeddings'
   | 'email'
+  | 'contactForm'
   | 'billing'
   | 'credentialEncryption'
   | 'googleIntegration'
@@ -94,6 +95,13 @@ export const FEATURES: Record<FeatureKey, FeatureDefinition> = {
     unlocks: 'invitation emails, approval notifications, and other app-sent email',
     dependsOn: [],
     guide: `${GUIDE}#c-email-resend`,
+  },
+  contactForm: {
+    key: 'contactForm',
+    label: 'Website contact form',
+    unlocks: 'messages sent from the public contact form (delivered by email)',
+    dependsOn: ['email'],
+    guide: `${GUIDE}#c2-website-contact-form`,
   },
   billing: {
     key: 'billing',
@@ -185,7 +193,7 @@ export const ENV_VARS: EnvVarDefinition[] = [
       'Public base URL of the app, used for OAuth redirects and email links. Defaults to http://localhost:3000 in development and https://$VERCEL_URL in preview; required in production.',
     validate: httpUrl,
     formatHint: 'must be an https URL (http is allowed only for localhost)',
-    whereToFind: 'Your deployment domain, e.g. https://app.nexefiy.com',
+    whereToFind: 'Your deployment domain, e.g. https://nexefiy.com',
   },
   {
     name: 'APP_ENV',
@@ -291,6 +299,18 @@ export const ENV_VARS: EnvVarDefinition[] = [
     validate: emailSender,
     formatHint: 'must be "Name <address@domain>" or "address@domain"',
     whereToFind: 'An address on a domain verified at https://resend.com/domains',
+  },
+
+  // --- Website contact form ------------------------------------------------
+  {
+    name: 'CONTACT_FORM_TO',
+    feature: 'contactForm',
+    exposure: 'server',
+    secret: false,
+    description: 'Inbox that receives messages from the public contact form. Never shown on the website.',
+    validate: matches(/^[^s@<>]+@[^s@<>]+.[^s@<>]+$/),
+    formatHint: 'must be a single email address, e.g. hello@example.com',
+    whereToFind: 'A mailbox your team reads',
   },
 
   // --- Billing -------------------------------------------------------------

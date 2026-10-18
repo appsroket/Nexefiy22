@@ -55,6 +55,7 @@ export interface ServerEnv {
   ai?: { provider: AiProvider; apiKey: string }
   embeddings?: { apiKey: string; model: string; dimensions: number }
   email?: { resendApiKey: string; from: string }
+  contactForm?: { to: string }
   billing?: { secretKey: string; publishableKey: string; webhookSecret: string; mode: 'test' | 'live' }
   credentialEncryption?: { keyring: Keyring }
   googleIntegration?: { clientId: string; clientSecret: string }
@@ -89,6 +90,7 @@ export function parseEnvironment(raw: RawEnv): EnvironmentSnapshot {
     email: evaluateAllOf(env, 'email', (get) => ({
       value: { resendApiKey: get('RESEND_API_KEY'), from: get('EMAIL_FROM') },
     })),
+    contactForm: evaluateAllOf(env, 'contactForm', (get) => ({ value: { to: get('CONTACT_FORM_TO') } })),
     billing: evaluateAllOf(env, 'billing', (get) =>
       evaluateBillingMode(
         appEnv,

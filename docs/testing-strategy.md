@@ -55,6 +55,18 @@ Static checks in `tests/db/migrations.test.ts` (run by `npm test`, no database n
 
 Fixtures create users and organizations with fixed UUIDs inside the test transaction. Never real customer data. Fixture credentials are fake strings that cannot authenticate anywhere (built at runtime in Vitest fixtures so secret scanners stay quiet).
 
+## 5a. Application and website checks (Phases 4–5)
+
+| Check | Where | What it proves |
+|---|---|---|
+| Shell logic | `tests/app/shell-logic.test.ts` | Navigation matching, workspace selection ignores a tampered cookie, list parameters are whitelisted |
+| Website content | `tests/app/site-content.test.ts` | Every public page exists and is listed; every internal link, anchor and `?topic=` resolves; no testimonials, logos, counts, prices or outcome figures; every "Built" claim has evidence in the repository; legal drafts are noindex; sitemap and robots per environment |
+| Contact form | `tests/app/contact.test.ts` | Refuses when not configured; honeypot; rate limit; validation (including header-safe single-line fields); one plain-text email with reply-to; failures logged without message content, address or key |
+| Bundle secrets | `npm run build && npm run check:bundle` | No secret values, credential patterns or server-only variable names in browser assets |
+| Browser (manual) | dev server | Every public route at 375 px: one `<h1>`, no horizontal scroll, skip-link target; mobile menu focus and Escape; contact form disabled state and server refusal |
+
+Not automated yet: Playwright journeys, axe accessibility scans, and visual checks of the signed-in shell (needs auth).
+
 ## 6. Definition of done (every phase)
 
 - Typecheck, lint, unit, database, integration tests pass (output included in the phase report).
