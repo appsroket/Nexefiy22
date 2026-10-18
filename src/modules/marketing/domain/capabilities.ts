@@ -16,7 +16,7 @@ export const CAPABILITY_STATUS: Record<
     label: 'Built',
     tone: 'success',
     description:
-      'Exists in Nexefiy today and is covered by automated tests. Customers can’t use it yet because accounts aren’t open.',
+      'Exists in Nexefiy today and is covered by automated tests.',
   },
   first_release: {
     label: 'Planned: first release',
@@ -169,14 +169,15 @@ export const CAPABILITIES: Record<CapabilityArea, readonly Capability[]> = {
       id: 'workspace-interface',
       title: 'Workspace interface',
       description:
-        'Navigation, workspace switching and approval notifications. You can look around it without an account, but it shows no data until sign-in exists.',
+        'Navigation, workspace switching, workspace settings and approval notifications for signed-in members.',
       status: 'built',
     },
     {
       id: 'accounts',
       title: 'Sign-up, sign-in and team invitations',
-      description: 'Email and password or magic-link sign-in, creating a workspace, and inviting your team.',
-      status: 'first_release',
+      description:
+        'Email and password sign-in with email confirmation and password reset, creating workspaces, and inviting your team with a role.',
+      status: 'built',
     },
     {
       id: 'billing',

@@ -45,6 +45,7 @@ No Docker on the primary dev machine, so the Supabase local stack is unavailable
 | `supabase/tests/database/001_schema_security.test.sql` | RLS on every table, policy coverage, no anon access, no client access to credentials/webhooks, read-only execution/billing tables, every function pins `search_path`, exact RPC surface, `timestamptz`, vector dimension, no float money | 18 |
 | `002_tenant_isolation.test.sql` | Anonymous and outsider access, org A vs org B reads/updates/deletes/inserts across all 27 tenant tables, composite-FK cross-tenant references, knowledge search, approvals, invitations | 40 |
 | `003_roles_and_membership.test.sql` | Viewer/operator/admin/owner privileges, membership administration rules, revocation and removal, last-owner protection, invitation acceptance | 60 |
+| `005_auth_workspace_flow.test.sql` | Creating workspaces, invitation lookup by token, duplicate and lapsed invitations, revoked and expired invitations, removed members rejoining, role changes taking effect at once, profiles, leaving, owner-only deletion with cascade and audit record, attempts on another organization | 59 |
 | `004_credentials_and_integrity.test.sql` | Credentials unreadable by members and encrypted-only, secret scanning of config, JSON schemas, statuses and lifecycle checks, idempotency, immutability, task-dependency cycles, approval binding to payload fingerprint, expiry, audit log append-only | 55 |
 
 Shared fixture: `supabase/test-fixtures/two_organizations.sql` (two organizations, one user per role, one row in every tenant table), copied into each file by `npm run db:test:sync`; `npm test` fails if a copy drifts.
@@ -55,17 +56,19 @@ Static checks in `tests/db/migrations.test.ts` (run by `npm test`, no database n
 
 Fixtures create users and organizations with fixed UUIDs inside the test transaction. Never real customer data. Fixture credentials are fake strings that cannot authenticate anywhere (built at runtime in Vitest fixtures so secret scanners stay quiet).
 
-## 5a. Application and website checks (Phases 4–5)
+## 5a. Application and website checks (Phases 4–6)
 
 | Check | Where | What it proves |
 |---|---|---|
 | Shell logic | `tests/app/shell-logic.test.ts` | Navigation matching, workspace selection ignores a tampered cookie, list parameters are whitelisted |
 | Website content | `tests/app/site-content.test.ts` | Every public page exists and is listed; every internal link, anchor and `?topic=` resolves; no testimonials, logos, counts, prices or outcome figures; every "Built" claim has evidence in the repository; legal drafts are noindex; sitemap and robots per environment |
 | Contact form | `tests/app/contact.test.ts` | Refuses when not configured; honeypot; rate limit; validation (including header-safe single-line fields); one plain-text email with reply-to; failures logged without message content, address or key |
+| Identity rules | `tests/app/identity-domain.test.ts` | Safe redirects (open-redirect attempts), proxy routing, password byte limit, workspace address rules, member permissions mirroring the database, invitation link keeps the token in the fragment, header-safe invitation email, onboarding progress, no Zod in client-imported modules |
+| Identity actions | `tests/app/identity-actions.test.ts` | With a fake Supabase client: validation before any call, safe redirects, rate limit, no emails/passwords/tokens/codes in logs, ended sessions refused, zero-row changes treated as not allowed, database refusals explained, removal revokes, invitation link only when email isn't configured, email-link routes |
 | Bundle secrets | `npm run build && npm run check:bundle` | No secret values, credential patterns or server-only variable names in browser assets |
 | Browser (manual) | dev server | Every public route at 375 px: one `<h1>`, no horizontal scroll, skip-link target; mobile menu focus and Escape; contact form disabled state and server refusal |
 
-Not automated yet: Playwright journeys, axe accessibility scans, and visual checks of the signed-in shell (needs auth).
+Not automated yet: Playwright journeys (sign-up, invitations, two-workspace isolation through the UI), axe accessibility scans, and visual checks of the signed-in pages.
 
 ## 6. Definition of done (every phase)
 

@@ -2,6 +2,30 @@
 
 Honest list of what does not exist or is unverified. Update every phase.
 
+## As of Phase 6 (2026-10-18)
+
+### Implemented and verified
+- **Database:** migration `20261018102320_invitation_lookup` (adds `get_invitation()`; `create_invitation()` now expires a lapsed invitation before re-inviting and reports a live one clearly) was applied to the development project through the Supabase MCP connector, and the local file is byte-identical (MD5) to the recorded statement. pgTAP, run on 2026-10-18 through the MCP wrapper (each file in one rolled-back transaction): new `005_auth_workspace_flow` 59/59, `001` 18/18 (RPC list updated), `002` 40/40, `003` 60/60. `004` (55 tests) was not re-run; nothing it covers changed. Afterwards the database held no test data (0 users, 0 organizations, 0 invitations, 0 audit rows). Security advisor: only the accepted findings (now five RPCs).
+- **Application:** sign-up, sign-in, sign-out (this device and all devices), email confirmation and password-reset landing routes, password reset and change, workspace creation, switching, settings, company details, members (role changes, removal), invitations (create, resend, revoke, accept), leaving and deleting a workspace, profile, onboarding checklist. Vitest: 276 tests, including identity rules (39) and Server Actions and email-link routes with a fake Supabase client (27). `tsc`, ESLint, `next build` and the bundle secret scan pass.
+- **Browser, signed out only** (dev server): `/app` redirects to sign-in and remembers the destination; sign-in and sign-up validation shows field errors and moves focus; `/reset-password` without a session and email links with a missing or bad code land on clear notices; a link that falls back to the Site URL (`/?code=`) is finished by the callback; an invitation link opened signed out removes the token from the address bar, keeps it in this browser, and offers sign-in/sign-up that return to it; account pages fit 375 px with one `<h1>` each.
+
+### Not verified yet
+- **No live sign-up, sign-in, confirmation email, password reset, invitation, or signed-in page has been exercised against Supabase.** Accounts weren't created during development. Signed-in pages are covered by type checking, the build and unit tests with a fake client; the authorization rules by pgTAP. A manual checklist is in the Phase 6 report.
+- Supabase Auth URL settings can't be read without the dashboard. The public settings endpoint confirms email sign-up is on, confirmation is required, and no other providers are enabled. Site URL and Redirect URLs must be set as in [credential-setup.md](credential-setup.md#a-supabase).
+
+### Limitations
+- **Email delivery:** Supabase's built-in email service sends only to members of the Supabase project's team and is heavily rate-limited, so other people can't receive confirmation or reset emails until custom SMTP (Resend) is set up. Invitation emails need `RESEND_API_KEY` and `EMAIL_FROM`; without them the person inviting gets the link to share (shown once, never stored).
+- **Email links (PKCE)** work only in the browser that asked for them. Switching the email templates to token-hash links handled by `/auth/confirm` removes this (see credential-setup).
+- **Revoked sessions:** signing out everywhere and changing a password revoke refresh tokens at once, and every Server Action re-checks the session with Supabase Auth. Page rendering verifies the access token locally (ES256), so another device can still view pages, and call the Data API directly, until its access token expires (1 hour by default).
+- **Rate limits** on sign-in, sign-up and reset emails are in memory per server instance. Server-side auth calls reach Supabase from the server's address, so Supabase's own per-IP limits apply to all users together; review before launch.
+- **Sign-up is open** to anyone who can reach the site: no waitlist or invite-only mode. Decide before a public deployment (Supabase can disable sign-ups).
+- No limit on how many workspaces one person can create. Deleting a workspace is immediate and permanent (cascading delete; the audit log keeps the record); no grace period or export.
+- Not built: changing the sign-in email, multi-factor authentication, single sign-on or social sign-in, avatar upload, a per-device session list.
+- An invitation token is kept in the browser's local storage for up to 7 days while the invitee signs in or signs up, and removed once used or found invalid.
+- Pending invitations past their expiry show as expired by date; their status changes to `expired` when the address is invited again.
+- CI and Playwright, planned for this phase in the roadmap, are not set up yet.
+- Fixed in passing: `/app/settings` had been failing since Phase 4 (it looked up the navigation item by its old path).
+
 ## As of Phase 5 (2026-10-18)
 
 ### Implemented and verified
@@ -11,14 +35,14 @@ Honest list of what does not exist or is unverified. Update every phase.
 ### Website limitations
 - **Contact form not live:** `RESEND_API_KEY`, `EMAIL_FROM` and `CONTACT_FORM_TO` aren't configured, so the form is disabled. Delivery to Resend is covered only by tests with a fake `fetch`; no real email has been sent.
 - **Rate limiting is per server instance** (in memory): it resets on deploy and isn't shared across instances. Replace it with a shared store in the hardening phase.
-- **Sign-in and sign-up pages are placeholders** that explain accounts aren't open; they link to the contact form and the signed-out workspace.
+- ~~**Sign-in and sign-up pages are placeholders.**~~ Replaced by working pages in Phase 6.
 - **Legal pages are unreviewed drafts** with placeholders (company name, address, jurisdiction, retention periods, contacts). They are marked "not in effect" and are noindex.
 - **No social preview image** (Open Graph image) and no analytics.
 - **No automated accessibility scan** (axe) or Playwright tests yet; keyboard behaviour was checked by hand on key flows only.
 - The website shows no prices because pricing isn't decided.
 
 ### Application limitations
-- **No authentication**, so the signed-in shell (workspace switcher with real workspaces, notifications, approvals data) has not been exercised end to end.
+- ~~**No authentication.**~~ Built in Phase 6; the signed-in shell still hasn't been exercised live (see above).
 - `npm audit` reports 5 high-severity findings in the lint toolchain (`braces` via `fast-glob` in `@next/eslint-plugin-next`); development-only. The automatic fix would downgrade `eslint-config-next`.
 - npm warns that the install scripts of `esbuild` and `unrs-resolver` are not approved; build, lint and tests work without them.
 - No CI pipeline yet.

@@ -12,12 +12,14 @@ Start with [docs/product-vision.md](docs/product-vision.md) and [docs/system-arc
 
 ## Current status
 
-- **Phase:** 5 — Public website (complete, pending review). Phases 1 (spec), 2 (environment), 3 (database) and 4 (application shell) complete.
-- **Code:** Next.js app with the public website at `/` (`src/app/(site)`, `src/modules/marketing`) and the signed-in application shell under `/app` (`src/app/app`, `src/modules/app-shell`, `src/modules/governance`); shared UI in `src/components`; `src/lib` (env, crypto, logging, Supabase clients, forms, list params, status labels); `supabase/migrations` (12 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests.
-- **Not built:** sign-in/sign-up (the auth pages are honest placeholders), AI employees, integrations, workflows, workers, billing. The app shell renders signed-out unless a Supabase session exists. Do not claim otherwise.
+- **Phase:** 6 — Auth & organizations (complete, pending review). Phases 1–5 (spec, environment, database, application shell, public website) complete.
+- **Code:** Next.js app with the public website at `/` (`src/app/(site)`, `src/modules/marketing`), account pages (`/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/invite`) and email-link routes (`src/app/auth`) from `src/modules/identity`, and the signed-in application under `/app` (`src/app/app`, `src/modules/app-shell`, `src/modules/identity`, `src/modules/governance`); shared UI in `src/components`; `src/lib` (env, crypto, logging, email, Supabase clients, forms, rate limit, list params, status labels); `supabase/migrations` (13 applied), `supabase/tests` (pgTAP), `scripts/`, Vitest tests.
+- **Built in Phase 6, not yet exercised live:** sign-up/sign-in/sign-out, email confirmation, password reset/change, workspaces, members, invitations, profile, onboarding checklist (ADR-021). Verified by pgTAP, Vitest with a fake Supabase client, the build, and signed-out browser checks only — no real account has signed in. Say so until it has.
+- **Not built:** AI employees, integrations, workflows, workers, billing, CI, Playwright. Do not claim otherwise.
+- **Auth rules:** Server Actions that change data call `getVerifiedUser()` (Supabase `getUser`); rendering uses `getClaims`. Redirect targets go through `safeNextPath`. Never log emails, passwords, invitation tokens or auth codes. Identity Zod schemas live in `src/modules/identity/domain/schemas.ts` and form parsing in `src/lib/forms/parse-form.ts`; keep Zod out of modules client components import (a test enforces this).
 - **Website honesty:** every capability shown publicly lives in `src/modules/marketing/domain` with a status (`built` / `first_release` / `later`). Move an item to `built` only in the change that ships and tests it, and add its evidence to `tests/app/site-content.test.ts`. Never add testimonials, customer logos, customer or integration counts, prices, or outcome figures.
 - **Supabase:** project `rnqrqconfbcrmszllxgu` (eu-north-1, Postgres 17) is the **development** database (ADR-010): 33 tables, RLS everywhere, no application data. Staging/production projects do not exist yet.
-- **Next phase:** App shell & auth. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
+- **Next phase:** CI & end-to-end tests, then Knowledge. See [docs/implementation-roadmap.md](docs/implementation-roadmap.md).
 
 ## Stack (verified versions in docs/architecture-decisions.md, ADR-002)
 
@@ -39,13 +41,14 @@ Next.js App Router · React · strict TypeScript · Tailwind CSS + shadcn/ui · 
 - Clients never write execution state, credentials, billing, or published workflow versions; the server does, after validation.
 - JSON configuration is validated by versioned schemas (`private.*_is_valid`) and must never contain credentials.
 
-## Repository layout (target; `src/lib`, `supabase`, `scripts`, `tests` exist, the rest arrives with the app shell)
+## Repository layout (target; modules other than marketing, app-shell, identity and governance arrive in later phases)
 
 ```
 src/
   app/                      Next.js routes (UI + route handlers). Thin: delegate to modules.
-    (site)/                 Public website at "/" (static pages).
+    (site)/                 Public website and account pages at "/".
     app/                    Signed-in application under "/app".
+    auth/                   Email-link routes (/auth/callback, /auth/confirm).
   components/               Shared UI (components/ui = shadcn/ui primitives).
   modules/<module>/
     domain/                 Pure types, Zod schemas, business rules. No I/O.

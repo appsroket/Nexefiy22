@@ -233,7 +233,7 @@ export default async function ComponentGalleryPage({ searchParams }: { searchPar
           <NotificationsMenu signedIn items={[]} total={0} />
           <AccountMenu
             preview
-            user={{ id: 'example', email: 'person@example.com', displayName: 'Example Person', avatarUrl: null }}
+            user={{ id: 'example', email: 'person@example.com', fullName: 'Example Person', displayName: 'Example Person', avatarUrl: null }}
             activeWorkspace={{ organizationId: 'example', name: 'Example Workspace', slug: 'example', role: 'admin' }}
           />
           <AccountMenu preview user={null} activeWorkspace={null} />

@@ -31,12 +31,15 @@ export function useActionFormState(): ActionFormContextValue {
 export function ActionForm({
   action,
   onSuccess,
+  onResult,
   children,
   className,
   'aria-label': ariaLabel,
 }: {
   action: FormAction
   onSuccess?: (state: ActionState) => void
+  /** Called after every submission, successful or not. */
+  onResult?: (state: ActionState) => void
   children: ReactNode
   className?: string
   'aria-label'?: string
@@ -48,10 +51,11 @@ export function ActionForm({
   useEffect(() => {
     if (state === handled.current) return
     handled.current = state
+    onResult?.(state)
     if (state.status === 'success') onSuccess?.(state)
     // Move focus to the first invalid field so keyboard and screen-reader users land on the problem.
     if (state.status === 'error') formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-  }, [state, onSuccess])
+  }, [state, onSuccess, onResult])
 
   return (
     <ActionFormContext value={{ state, pending }}>

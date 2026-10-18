@@ -1,14 +1,26 @@
 import type { NextRequest } from 'next/server'
 
-import { refreshSession } from '@/lib/supabase/session'
+import { redirectWithSession, refreshSession } from '@/lib/supabase/session'
+import { routeForSession } from '@/modules/identity/domain/routing'
 
 export async function proxy(request: NextRequest) {
-  return refreshSession(request)
+  const session = await refreshSession(request)
+  const target = routeForSession(new URL(request.url), session.userId !== null)
+  return target ? redirectWithSession(session, target) : session.response
 }
 
 export const config = {
-  // Only the signed-in application reads the Supabase session, so public
-  // website pages skip the proxy and stay static. Add auth routes here when
-  // sign-in is built.
-  matcher: ['/app', '/app/:path*'],
+  // Only routes that depend on the session run the proxy, so the public
+  // website stays static. The proxy is a convenience (fast redirects); every
+  // page and Server Action still checks the session itself.
+  matcher: [
+    '/app',
+    '/app/:path*',
+    '/sign-in',
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    // Supabase falls back to the Site URL when a redirect URL isn't allowed.
+    { source: '/', has: [{ type: 'query', key: 'code' }] },
+  ],
 }

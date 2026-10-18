@@ -11,6 +11,10 @@ import { getShellContext } from '@/modules/app-shell/server/shell-context'
 import { getWorkspaceSummary } from '@/modules/app-shell/server/workspace-summary'
 import { NAV_ICONS } from '@/modules/app-shell/ui/nav-icons'
 import { requireWorkspace } from '@/modules/app-shell/ui/workspace-gate'
+import { onboardingProgress } from '@/modules/identity/domain/onboarding'
+import { getOnboardingFacts } from '@/modules/identity/server/queries'
+import { OnboardingChecklist } from '@/modules/identity/ui/onboarding-checklist'
+import { CreateWorkspaceForm } from '@/modules/identity/ui/workspace-forms'
 
 export const metadata: Metadata = { title: 'Overview' }
 
@@ -19,20 +23,38 @@ export default async function OverviewPage() {
   const gate = requireWorkspace(context, 'your workspace')
 
   if (!gate.ok) {
+    if (context.status === 'signed_in' && context.workspaces.length === 0) {
+      return (
+        <>
+          <PageHeader
+            title={`Welcome${context.user.fullName ? `, ${context.user.fullName}` : ''}`}
+            description="Start by creating a workspace for your company. If a teammate invited you, open the link in their invitation email instead."
+          />
+          <SectionCard title="Create your workspace" description="You’ll be its owner and can invite your team next.">
+            <CreateWorkspaceForm />
+          </SectionCard>
+          <SectionsGuide />
+        </>
+      )
+    }
     return (
       <>
         <PageHeader
           title="Overview"
           description="Nexefiy lets you set up AI employees, connect them to your business apps, and supervise their work with approvals."
         />
-        {context.status === 'signed_in' ? gate.fallback : null}
+        {gate.fallback}
         <SectionsGuide />
       </>
     )
   }
 
   const { workspace, user } = gate
-  const summary = await getWorkspaceSummary(workspace.organizationId)
+  const [summary, facts] = await Promise.all([
+    getWorkspaceSummary(workspace.organizationId),
+    getOnboardingFacts(workspace.organizationId, workspace.role, Boolean(user.fullName)),
+  ])
+  const progress = onboardingProgress(facts)
   const pendingApprovals = context.status === 'signed_in' ? context.notifications.total : 0
   const article = /^[aeiou]/i.test(roleLabel(workspace.role)) ? 'an' : 'a'
 
@@ -42,6 +64,7 @@ export default async function OverviewPage() {
         title={workspace.name}
         description={`Welcome back, ${user.displayName}. You’re ${article} ${roleLabel(workspace.role).toLowerCase()} in this workspace.`}
       />
+      {progress.completed < progress.total ? <OnboardingChecklist progress={progress} /> : null}
       <section aria-labelledby="summary-heading" className="flex flex-col gap-3">
         <h2 id="summary-heading" className="text-sm font-medium text-muted-foreground">
           Workspace summary

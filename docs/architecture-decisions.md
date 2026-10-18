@@ -138,3 +138,19 @@ Web app on Vercel (EU region near Supabase), workers on Trigger.dev Cloud. Voice
 
 **Alternatives:** a separate marketing site (another repository or a CMS) adds moving parts before there is content to manage; an `app.` subdomain via host-based routing in the proxy remains possible later without moving pages again.
 **Consequences:** Links into the application use `/app/...`. A CMS or separate site can replace `(site)` later; the domain data shows what must be carried over.
+
+## ADR-021 Authentication, sessions and workspace membership — Accepted (Phase 6)
+
+**Context:** People need accounts, workspaces and teammates, with permissions enforced by the database rather than the interface.
+**Decision:**
+- **Supabase Auth, email and password**, through Server Actions using the user's own session (`@supabase/ssr` cookies). Email links use the PKCE code exchange at `/auth/callback`; `/auth/confirm` handles token-hash links for customized templates. Redirect targets after sign-in or an email link are limited to known in-app paths (`safeNextPath`).
+- **Two session checks.** Rendering verifies the access token locally (`getClaims`, ES256 keys). Every Server Action that changes data calls `getUser`, which asks Supabase Auth, so a session ended elsewhere can no longer change anything. The proxy runs only on `/app` and the account pages and redirects by session state; pages and actions still check for themselves.
+- **Authorization lives in the database.** Actions run under the user's session; RLS and `private.guard_membership_change` decide. A change that touches no rows is reported as not allowed. The interface hides controls by mirroring the rules (`memberPermissions`) but never decides.
+- **Removing a member** sets the membership to `revoked` (keeps who and when); leaving deletes your own membership. Access ends at once because policies count only active memberships, and the role is read from the database on every request, so role changes also apply immediately.
+- **Invitations** carry a one-time token (only its hash is stored). The link puts the token in the URL fragment (`/invite#token`), which browsers never send to servers, so it stays out of request logs and Referer headers. The invitee sees what the invitation is for through `get_invitation()` and joins with `accept_invitation()`, which requires their confirmed email to match. Without email configured, the person inviting gets the link once to share.
+- **Onboarding progress is derived** from workspace data (name, company details, other members or invitations) rather than stored, so it can't claim a step that didn't happen.
+- The active workspace stays a cookie preference, checked against memberships on every request (as in Phase 4).
+
+**Alternatives:** client-side auth calls from the browser (simpler, but scatters error handling and rate limiting); tokens in the invitation URL path or query (simpler, but ends up in logs); storing onboarding state (can drift from reality).
+**Consequences:** Another device keeps read access until its access token expires after "sign out everywhere"; custom SMTP is needed before outside users can sign up; CI and end-to-end tests are a separate phase.
+

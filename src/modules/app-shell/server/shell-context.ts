@@ -22,6 +22,8 @@ import {
 export interface ShellUser {
   id: string
   email: string | null
+  /** The name the person entered, if any (displayName falls back to the email). */
+  fullName: string | null
   displayName: string
   avatarUrl: string | null
 }
@@ -89,10 +91,12 @@ export const getShellContext = cache(async (): Promise<ShellContext> => {
   const activeWorkspace = resolveActiveWorkspace(workspaces, preferredId)
 
   const email = profileResult.data?.email ?? (typeof claims.email === 'string' ? claims.email : null)
+  const fullName = profileResult.data?.full_name?.trim() || null
   const user: ShellUser = {
     id: userId,
     email,
-    displayName: profileResult.data?.full_name?.trim() || email || 'Your account',
+    fullName,
+    displayName: fullName || email || 'Your account',
     avatarUrl: profileResult.data?.avatar_url ?? null,
   }
 

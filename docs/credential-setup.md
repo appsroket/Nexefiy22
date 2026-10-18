@@ -75,7 +75,13 @@ Dashboard: <https://supabase.com/dashboard> · Project `rnqrqconfbcrmszllxgu` (e
 - The secret key bypasses RLS. Use it only where no user session exists (workers, webhooks, billing sync), only in `server-only` modules, and always scope queries by `organization_id`. Prefer a narrowly scoped `security definer` function over broad secret-key access.
 - This project uses the new key system. Don't set `SUPABASE_SERVICE_ROLE_KEY`; it exists only for older projects. If both are set, the secret key wins and a warning is shown.
 
-**Auth settings** (Authentication → URL Configuration): Site URL = `{APP_URL}`; Redirect URLs: `http://localhost:3000/**`, your preview alias, and the production URL. Use custom SMTP (Resend, section C) before launch.
+**Auth settings** (Authentication → URL Configuration): Site URL = `{APP_URL}`; Redirect URLs: `http://localhost:3000/**`, your preview alias, and the production URL. Sign-up and password-reset emails link to `{APP_URL}/auth/callback?next=…`, so the allow list must match the query string too (`/**` does). If a redirect isn't allowed, Supabase falls back to the Site URL; the app finishes those links as well.
+
+**Auth emails:**
+- Keep **Confirm email** on (Authentication → Sign In / Providers → Email). The app handles both cases, but with confirmation off anyone can sign up with someone else's address.
+- Supabase's built-in email service only delivers to members of your Supabase team and is heavily rate-limited. Set up custom SMTP (Resend, section C) before anyone else signs up.
+- The default email templates use PKCE links, which only work in the browser that asked for the email. To make links work on any device, change the templates (Authentication → Emails) to token-hash links handled by `/auth/confirm`, for example `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email` for *Confirm signup* and `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` for *Reset password*.
+- Consider turning on leaked-password protection and a minimum password length of 8 (Authentication → Sign In / Providers → Email); the app enforces 8 characters too.
 
 **Connectivity check:** `GET /auth/v1/settings` with the publishable key, and for the secret key `GET /auth/v1/admin/users?per_page=1` (requires privileged access; the response body is discarded unread).
 

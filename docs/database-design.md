@@ -49,7 +49,7 @@ Anonymous users can read only the public plan catalog.
 | `profiles` | Display data for `auth.users` | Created by trigger on sign-up; visible to self and co-members |
 | `organizations` | Tenants | Created only via `create_organization()` |
 | `organization_members` | User ↔ organization with role/status | PK `(organization_id, user_id)`; guarded by `private.guard_membership_change()` (role rules, last-owner rule, records `revoked_at/by`) |
-| `organization_invitations` | Pending invitations | Stores `token_hash` (SHA-256) only; one pending invite per email; created via `create_invitation()`, accepted via `accept_invitation()` |
+| `organization_invitations` | Pending invitations | Stores `token_hash` (SHA-256) only; one pending invite per email (a lapsed one is marked `expired` when the address is invited again); created via `create_invitation()`, looked up by the token holder via `get_invitation()`, accepted via `accept_invitation()` |
 | `company_settings` | Business profile per organization | One row per org; `settings` JSON secret-scanned |
 
 ### Business knowledge
@@ -136,8 +136,9 @@ To evolve a format: add a new branch (`when 2 then …`) in a new migration with
 | `private.assign_employee_version`, `assign_workflow_version` | Number versions across all rows | Only read `max(version)` for the inserted row's parent |
 | `private.purge_audit_logs` | Retention | Service role only; refuses anything newer than 365 days |
 | `public.create_organization`, `create_invitation`, `accept_invitation`, `decide_approval` | Write rows clients cannot write directly | Derive the user from `auth.uid()`, check membership/role inside, `authenticated` only, generic errors for unknown ids/tokens |
+| `public.get_invitation` | Lets an invitee see an invitation before joining (they can't read invitation rows) | Only by token (32 random bytes; malformed tokens return nothing); returns the workspace name, role, status, invited address and whether it matches the caller's confirmed email; `authenticated` only |
 
-The Supabase security advisor reports these four RPCs (WARN, *authenticated can execute SECURITY DEFINER*) and two tables with RLS but no policies (INFO, `integration_secrets`, `provider_webhook_events`). Both are intentional and covered by tests.
+The Supabase security advisor reports these five RPCs (WARN, *authenticated can execute SECURITY DEFINER*) and two tables with RLS but no policies (INFO, `integration_secrets`, `provider_webhook_events`). Both are intentional and covered by tests.
 
 ## 7. Migrations
 
@@ -155,6 +156,7 @@ The Supabase security advisor reports these four RPCs (WARN, *authenticated can 
 | 20261017220124 | api_functions | `create_organization`, `create_invitation`, `accept_invitation`, `decide_approval` |
 | 20261017221324 | version_numbering_definer | fix found by the tenant-isolation tests (see migration comment) |
 | 20261017221856 | foreign_key_indexes | indexes for tenant FKs without a leading index |
+| 20261018102320 | invitation_lookup | `get_invitation()`; `create_invitation()` expires a lapsed invitation before re-inviting and reports a live one |
 
 ## 8. Known gaps (by design, revisit later)
 

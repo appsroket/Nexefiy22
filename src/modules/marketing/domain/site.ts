@@ -56,7 +56,7 @@ export const PUBLIC_PAGES = {
   gettingStarted: {
     path: '/getting-started',
     title: 'Getting started',
-    description: 'What you can do with Nexefiy today, and the setup steps planned for when accounts open.',
+    description: 'What you can do with Nexefiy today, and the setup steps that come next.',
     indexable: true,
   },
   contact: {
@@ -75,6 +75,24 @@ export const PUBLIC_PAGES = {
     path: '/sign-up',
     title: 'Create an account',
     description: 'Create a Nexefiy account.',
+    indexable: false,
+  },
+  forgotPassword: {
+    path: '/forgot-password',
+    title: 'Reset your password',
+    description: 'Get a link to choose a new password for your Nexefiy account.',
+    indexable: false,
+  },
+  resetPassword: {
+    path: '/reset-password',
+    title: 'Choose a new password',
+    description: 'Choose a new password for your Nexefiy account.',
+    indexable: false,
+  },
+  invite: {
+    path: '/invite',
+    title: 'Join a workspace',
+    description: 'Accept an invitation to a Nexefiy workspace.',
     indexable: false,
   },
   legal: {
@@ -147,7 +165,7 @@ export const FOOTER_NAV: readonly { title: string; links: readonly SiteLink[] }[
 
 /** The one sentence every page agrees on about where the product stands. */
 export const PRODUCT_STATUS =
-  'Nexefiy is in development and isn’t open for sign-ups yet. Features marked “Built” exist in the product today; everything else is planned.'
+  'Nexefiy is in early development. You can create an account and a workspace and invite your team; AI employees and app connections aren’t available yet. Features marked “Built” exist in the product today; everything else is planned.'
 
 /** Where "Get early access" leads: the contact form with the topic chosen. */
 export const EARLY_ACCESS_HREF = `${PUBLIC_PAGES.contact.path}?topic=early-access`

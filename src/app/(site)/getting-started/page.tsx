@@ -1,9 +1,8 @@
-import { ArrowRight, LayoutDashboard, Mail, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Mail, ShieldCheck, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 
 import type { CapabilityStatus } from '@/modules/marketing/domain/capabilities'
 import { EARLY_ACCESS_HREF, PRODUCT_STATUS, PUBLIC_PAGES } from '@/modules/marketing/domain/site'
-import { APP_HOME } from '@/modules/app-shell/domain/navigation'
 import { CtaBand } from '@/modules/marketing/ui/content-blocks'
 import { CapabilityStatusBadge, PageIntro, Section, StatusLegend } from '@/modules/marketing/ui/layout-primitives'
 import { pageMetadata } from '@/modules/marketing/ui/page-metadata'
@@ -14,17 +13,17 @@ const TODAY = [
   {
     icon: Mail,
     title: 'Ask for early access',
-    description: 'Tell us about your business and what you’d like help with. We’ll contact you when accounts open.',
+    description: 'Tell us about your business and what you’d like help with. We’ll contact you when AI employees are ready to try.',
     href: EARLY_ACCESS_HREF,
     linkLabel: 'Go to the contact form',
   },
   {
-    icon: LayoutDashboard,
-    title: 'Look around the workspace',
+    icon: UserPlus,
+    title: 'Create your workspace',
     description:
-      'Open the workspace interface without an account to see how it’s organized. It shows no data, and most sections are marked “Soon”.',
-    href: APP_HOME,
-    linkLabel: 'Open the workspace interface',
+      'Create an account, set up a workspace for your company and invite your team. Most sections of the workspace are still marked “Soon”.',
+    href: PUBLIC_PAGES.signUp.path,
+    linkLabel: 'Create an account',
   },
   {
     icon: ShieldCheck,
@@ -36,7 +35,12 @@ const TODAY = [
 ] as const
 
 const SETUP_STEPS: readonly { title: string; description: string; status: CapabilityStatus }[] = [
-  { title: 'Create your account and workspace', description: 'Sign up and name your workspace.', status: 'first_release' },
+  { title: 'Create your account and workspace', description: 'Sign up and name your workspace.', status: 'built' },
+  {
+    title: 'Invite your team',
+    description: 'Invite people by email and give each one a role: owner, admin, operator or viewer.',
+    status: 'built',
+  },
   {
     title: 'Describe your business',
     description: 'Add your products, policies and tone, and upload documents your AI employees should use.',
@@ -64,7 +68,7 @@ const SETUP_STEPS: readonly { title: string; description: string; status: Capabi
   },
   {
     title: 'Supervise and review',
-    description: 'Approve or reject requests, follow each step in the activity history, and invite your team.',
+    description: 'Approve or reject requests and follow each step in the activity history.',
     status: 'first_release',
   },
 ]
@@ -96,8 +100,8 @@ export default function GettingStartedPage() {
       <Section
         id="setup"
         tone="muted"
-        title="How setup will work"
-        description="The steps planned for when accounts open. None of them can be done yet."
+        title="How setup works"
+        description="From signing up to supervising AI employees. Steps marked “Built” work today; the rest are planned."
       >
         <StatusLegend />
         <ol className="flex max-w-3xl flex-col gap-3">

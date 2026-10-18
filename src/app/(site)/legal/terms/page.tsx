@@ -137,7 +137,7 @@ export default function TermsPage() {
   return (
     <LegalDocument
       title="Terms of Service"
-      summary="The terms for using Nexefiy, once accounts open."
+      summary="The terms for using Nexefiy."
       sections={SECTIONS}
     />
   )

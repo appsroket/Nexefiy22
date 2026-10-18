@@ -102,7 +102,7 @@ npx supabase db push --linked
 
 Review the dry run first: it lists exactly which migrations will run.
 
-> Migrations 1–12 were applied on 2026-10-17 through the Supabase MCP connector (`apply_migration`), which records its own timestamp; the local files were renamed to those recorded versions, and their contents were verified byte-identical (MD5) to what the database recorded. `migration list` therefore shows them as in sync.
+> Migrations 1–12 were applied on 2026-10-17 through the Supabase MCP connector (`apply_migration`), which records its own timestamp; the local files were renamed to those recorded versions, and their contents were verified byte-identical (MD5) to what the database recorded. `migration list` therefore shows them as in sync. Migration 13 (`20261018102320_invitation_lookup`) was applied the same way on 2026-10-18 and verified the same way.
 
 ### Run the database security tests
 

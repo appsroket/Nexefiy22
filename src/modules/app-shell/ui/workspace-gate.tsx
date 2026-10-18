@@ -2,9 +2,11 @@
 // fallback when there is no signed-in user or no workspace to show.
 
 import { Building2, LogIn } from 'lucide-react'
+import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
+import { Button } from '@/components/ui/button'
 
 import type { WorkspaceMembership } from '../domain/workspace'
 import type { ShellContext, ShellUser } from '../server/shell-context'
@@ -21,7 +23,12 @@ export function requireWorkspace(context: ShellContext, what: string): Workspace
         <EmptyState
           icon={LogIn}
           title="Sign in required"
-          description={`Sign in to see ${what}. Account sign-in isn’t available in this version yet.`}
+          description={`Sign in to see ${what}.`}
+          action={
+            <Button asChild>
+              <Link href="/sign-in">Sign in</Link>
+            </Button>
+          }
         />
       ),
     }
@@ -33,7 +40,12 @@ export function requireWorkspace(context: ShellContext, what: string): Workspace
         <EmptyState
           icon={Building2}
           title="No workspace yet"
-          description={`You’re not a member of any workspace, so there are no ${what} to show. Ask a workspace owner to invite you.`}
+          description={`You’re not a member of any workspace, so there are no ${what} to show. Create a workspace, or open an invitation link you received.`}
+          action={
+            <Button asChild>
+              <Link href="/app/workspaces/new">Create a workspace</Link>
+            </Button>
+          }
         />
       ),
     }

@@ -1,15 +1,30 @@
+import { DEFAULT_AFTER_SIGN_IN, firstParam, safeNextPath, signInNotice } from '@/modules/identity/domain/auth'
+import { AuthCard, InlineLink } from '@/modules/identity/ui/auth-card'
+import { SignInForm } from '@/modules/identity/ui/auth-forms'
 import { PUBLIC_PAGES } from '@/modules/marketing/domain/site'
-import { AccountEntry } from '@/modules/marketing/ui/account-entry'
 import { pageMetadata } from '@/modules/marketing/ui/page-metadata'
 
 export const metadata = pageMetadata('signIn')
 
-export default function SignInPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function SignInPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams
+  const next = safeNextPath(firstParam(params.next))
+  const notice = firstParam(params.signed_out) ? 'You’ve been signed out.' : signInNotice(firstParam(params.error))
+  const signUpHref = next === DEFAULT_AFTER_SIGN_IN ? PUBLIC_PAGES.signUp.path : `${PUBLIC_PAGES.signUp.path}?next=${next}`
+
   return (
-    <AccountEntry
+    <AuthCard
       title="Sign in"
-      message="Sign-in isn’t available yet because Nexefiy accounts haven’t opened. When they do, you’ll sign in here with your email and a password or a one-time link."
-      alternate={{ prompt: 'New to Nexefiy?', label: 'Create an account', href: PUBLIC_PAGES.signUp.path }}
-    />
+      description="Sign in to your Nexefiy workspace."
+      footer={
+        <>
+          New to Nexefiy? <InlineLink href={signUpHref}>Create an account</InlineLink>
+        </>
+      }
+    >
+      <SignInForm next={next} notice={notice} />
+    </AuthCard>
   )
 }

@@ -69,8 +69,17 @@ describe('public pages', () => {
   it('links every header and footer item to a public page', () => {
     const links = [...HEADER_NAV, ...FOOTER_NAV.flatMap((group) => group.links)]
     for (const link of links) expect(PUBLIC_PATHS, link.href).toContain(link.href)
-    // Every public page is reachable from the header, the footer, or the account buttons.
-    const reachable = new Set([...links.map((link) => link.href), '/', PUBLIC_PAGES.signIn.path, PUBLIC_PAGES.signUp.path])
+    // Every public page is reachable from the header, the footer, the account buttons, or (for the
+    // account pages below) the sign-in form and the links in account emails.
+    const reachable = new Set([
+      ...links.map((link) => link.href),
+      '/',
+      PUBLIC_PAGES.signIn.path,
+      PUBLIC_PAGES.signUp.path,
+      PUBLIC_PAGES.forgotPassword.path,
+      PUBLIC_PAGES.resetPassword.path,
+      PUBLIC_PAGES.invite.path,
+    ])
     for (const path of PUBLIC_PATHS) expect(reachable, path).toContain(path)
   })
 
@@ -149,6 +158,7 @@ describe('honest content', () => {
     'approvals-list': 'src/app/app/approvals/page.tsx',
     'workspace-isolation': 'supabase/tests/database/002_tenant_isolation.test.sql',
     'workspace-interface': 'src/modules/app-shell/ui/app-shell.tsx',
+    accounts: 'supabase/tests/database/005_auth_workspace_flow.test.sql',
     'Database-enforced workspace isolation': 'supabase/tests/database/002_tenant_isolation.test.sql',
     'Automated isolation tests': 'supabase/tests/database/003_roles_and_membership.test.sql',
     'Four roles': 'supabase/tests/database/003_roles_and_membership.test.sql',

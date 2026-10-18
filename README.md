@@ -2,7 +2,7 @@
 
 Universal AI workforce and business operations platform: configure AI employees, connect business apps, coordinate work through workflows, and supervise execution with human approvals.
 
-**Status:** Phase 5 — public website and application shell on top of the database (Phase 3). Nexefiy is not open to customers: sign-in, AI employees, integrations and workflows are not built yet.
+**Status:** Phase 6 — accounts and workspaces (sign-up, sign-in, invitations, roles, settings) on top of the public website, application shell and database. AI employees, integrations and workflows are not built yet, and nothing is deployed.
 
 - Project instructions: [CLAUDE.md](CLAUDE.md)
 - Specification and architecture: [docs/](docs/)

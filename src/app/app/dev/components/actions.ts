@@ -7,7 +7,8 @@
 import { z } from 'zod'
 
 import { getServerEnv } from '@/lib/env/server'
-import { actionError, actionSuccess, parseFormData, type ActionState } from '@/lib/forms/action-state'
+import { actionError, actionSuccess, type ActionState } from '@/lib/forms/action-state'
+import { parseFormData } from '@/lib/forms/parse-form'
 
 function blockedInProduction(): ActionState | null {
   return getServerEnv().appEnv === 'production' ? actionError('Not available.') : null

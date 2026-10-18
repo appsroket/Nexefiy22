@@ -1,6 +1,7 @@
 'use client'
 
-import { Building2, Check, ChevronsUpDown } from 'lucide-react'
+import { Building2, Check, ChevronsUpDown, Plus } from 'lucide-react'
+import Link from 'next/link'
 import { useState, useTransition } from 'react'
 
 import {
@@ -118,11 +119,24 @@ export function WorkspaceSwitcher({
                 <DropdownMenuSeparator />
                 <p className="px-2 py-1.5 text-sm text-muted-foreground">
                   {signedIn
-                    ? 'You’re not a member of any workspace yet. Ask a workspace owner to invite you.'
+                    ? 'You’re not a member of any workspace yet. Create one, or open an invitation link you received.'
                     : 'Sign in to see your workspaces.'}
                 </p>
               </>
             )}
+            {signedIn ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="gap-2">
+                  <Link href="/app/workspaces/new">
+                    <span aria-hidden="true" className="flex size-6 items-center justify-center rounded-md border">
+                      <Plus className="size-3.5" />
+                    </span>
+                    Create a workspace
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
         <p role="status" aria-live="polite" className="px-2 text-xs text-destructive empty:hidden">

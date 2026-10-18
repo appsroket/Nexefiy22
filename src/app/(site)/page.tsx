@@ -52,7 +52,7 @@ export default function HomePage() {
         <Container className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1fr_1.1fr]">
           <div className="flex flex-col gap-6">
             <p className="w-fit rounded-full border bg-background px-3 py-1 text-sm text-muted-foreground">
-              In development · not open for sign-ups yet
+              In early development · AI employees not available yet
             </p>
             <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
               AI employees your business can supervise

@@ -6,13 +6,14 @@
 
 import 'server-only'
 
-import { actionError, actionSuccess, parseFormData, type ActionState } from '@/lib/forms/action-state'
-import { redact } from '@/lib/logging/redact'
+import { RESEND_EMAILS_URL, sendPlainTextEmail, type PlainTextEmail } from '@/lib/email/resend'
+import { actionError, actionSuccess, type ActionState } from '@/lib/forms/action-state'
+import { parseFormData } from '@/lib/forms/parse-form'
 
 import { HONEYPOT_FIELD, topicLabel } from '../domain/contact'
 import { contactMessageSchema, type ContactMessage } from '../domain/contact-schema'
 
-export const RESEND_EMAILS_URL = 'https://api.resend.com/emails'
+export { RESEND_EMAILS_URL }
 
 export interface ContactDeliveryConfig {
   resendApiKey: string
@@ -52,19 +53,12 @@ export async function handleContactSubmission(formData: FormData, deps: ContactD
     return actionError('You’ve sent several messages in a short time. Please wait a few minutes and try again.')
   }
 
-  try {
-    const response = await deps.fetch(RESEND_EMAILS_URL, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${deps.config.resendApiKey}`, 'content-type': 'application/json' },
-      body: JSON.stringify(buildContactEmail(parsed.data, deps.config)),
-      signal: AbortSignal.timeout(10_000),
-    })
-    if (!response.ok) {
-      console.error('[marketing] contact message delivery failed', { status: response.status })
-      return actionError('We couldn’t send your message just now. Please try again in a few minutes.')
-    }
-  } catch (error) {
-    console.error('[marketing] contact message delivery failed', redact(error instanceof Error ? error.name : 'unknown'))
+  const result = await sendPlainTextEmail(deps.config.resendApiKey, buildContactEmail(parsed.data, deps.config), deps.fetch)
+  if (!result.ok) {
+    console.error(
+      '[marketing] contact message delivery failed',
+      result.reason === 'rejected' ? { status: result.status } : { error: result.errorName },
+    )
     return actionError('We couldn’t send your message just now. Please try again in a few minutes.')
   }
 
@@ -72,7 +66,10 @@ export async function handleContactSubmission(formData: FormData, deps: ContactD
 }
 
 /** Resend request body. Plain text only, so message content can't inject HTML. */
-export function buildContactEmail(message: ContactMessage, config: Pick<ContactDeliveryConfig, 'from' | 'to'>) {
+export function buildContactEmail(
+  message: ContactMessage,
+  config: Pick<ContactDeliveryConfig, 'from' | 'to'>,
+): PlainTextEmail {
   const topic = topicLabel(message.topic)
   return {
     from: config.from,

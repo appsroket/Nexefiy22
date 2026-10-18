@@ -15,7 +15,7 @@ export function StatusBanner() {
       <Container className="flex items-start gap-2 py-2 sm:items-center">
         <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-info sm:mt-0" />
         <p className="text-pretty">
-          Nexefiy is in development and not open for sign-ups yet.{' '}
+          Nexefiy is in early development: accounts and workspaces work, AI employees don’t yet.{' '}
           <Link href="/#whats-built" className="font-medium underline underline-offset-4">
             See what’s built and what’s planned
           </Link>

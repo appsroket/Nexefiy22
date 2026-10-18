@@ -41,7 +41,7 @@ const LIMITS = [
 const FAQ = [
   {
     question: 'Can I buy Nexefiy today?',
-    answer: 'No. Nexefiy isn’t open for sign-ups yet, and there is nothing to pay for.',
+    answer: 'No. Nexefiy is in early development and there is nothing to pay for.',
   },
   {
     question: 'Will there be a free trial?',

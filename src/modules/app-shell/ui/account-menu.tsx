@@ -1,6 +1,7 @@
 'use client'
 
-import { LogOut, UserRound } from 'lucide-react'
+import { LogOut, Settings, UserRound } from 'lucide-react'
+import Link from 'next/link'
 import { useTransition } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -59,6 +60,21 @@ export function AccountMenu({
               </p>
             ) : null}
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild disabled={preview}>
+              <Link href="/app/account">
+                <UserRound aria-hidden="true" />
+                Your account
+              </Link>
+            </DropdownMenuItem>
+            {activeWorkspace ? (
+              <DropdownMenuItem asChild disabled={preview}>
+                <Link href="/app/settings">
+                  <Settings aria-hidden="true" />
+                  Workspace settings
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={pending || preview}
               onSelect={(event) => {
@@ -73,9 +89,9 @@ export function AccountMenu({
         ) : (
           <>
             <DropdownMenuLabel>Not signed in</DropdownMenuLabel>
-            <p className="px-2 pb-2 text-xs text-muted-foreground">
-              Account sign-in isn’t available in this version yet.
-            </p>
+            <DropdownMenuItem asChild>
+              <Link href="/sign-in">Sign in</Link>
+            </DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>

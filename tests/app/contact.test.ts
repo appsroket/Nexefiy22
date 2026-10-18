@@ -10,7 +10,7 @@ import {
   RESEND_EMAILS_URL,
   type ContactDeps,
 } from '@/modules/marketing/server/contact-service'
-import { createRateLimiter } from '@/modules/marketing/server/rate-limit'
+import { createRateLimiter } from '@/lib/rate-limit'
 
 import { fake } from '../helpers/env-fixtures'
 

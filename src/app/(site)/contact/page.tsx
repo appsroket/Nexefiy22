@@ -46,7 +46,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <ul className="flex flex-col gap-2 text-sm text-pretty text-muted-foreground [&_li]:ml-4 [&_li]:list-disc">
               <li>Your message goes to the Nexefiy team by email. It isn’t added to a mailing list.</li>
               <li>We reply to the email address you give us.</li>
-              <li>For early access, we’ll contact you when accounts open.</li>
+              <li>For early access, we’ll contact you when AI employees are ready to try.</li>
             </ul>
           </div>
           <div className="flex flex-col gap-3 rounded-xl border bg-card p-6">

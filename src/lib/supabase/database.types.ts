@@ -2079,6 +2079,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_invitation: {
+        Args: { p_token: string }
+        Returns: {
+          already_member: boolean
+          email_matches: boolean
+          expires_at: string
+          invited_email: string
+          organization_id: string
+          organization_name: string
+          role: string
+          status: string
+        }[]
+      }
       match_knowledge_chunks: {
         Args: {
           p_match_count?: number

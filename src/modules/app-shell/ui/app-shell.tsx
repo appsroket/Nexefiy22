@@ -2,11 +2,9 @@
 // A Server Component: it loads the shell context once and hands plain data to
 // the small client components that need interactivity.
 
-import { Info } from 'lucide-react'
 import { cookies } from 'next/headers'
 import type { ReactNode } from 'react'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 
@@ -45,16 +43,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
         </header>
         <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-6 outline-none md:px-6 lg:px-8">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-            {!signedIn ? (
-              <Alert>
-                <Info aria-hidden="true" />
-                <AlertTitle>You’re not signed in</AlertTitle>
-                <AlertDescription>
-                  Account sign-in isn’t available in this version yet, so no workspace data is shown. You can still
-                  explore how Nexefiy is organized.
-                </AlertDescription>
-              </Alert>
-            ) : null}
             {children}
           </div>
         </main>

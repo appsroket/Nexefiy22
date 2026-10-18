@@ -9,7 +9,8 @@ P1 Foundation ✅
  └─ P2 Environment configuration & credentials ✅
      └─ P3 Database schema, RLS & security tests ✅
          └─ P4 Application shell ✅, P5 Public website ✅
-             └─ Auth & organizations
+             └─ P6 Auth & organizations ✅
+                 ├─ CI & end-to-end tests
                  (Knowledge, AI employees and Tools below all need sign-in)
              ├─ Knowledge
              ├─ AI employees & model gateway ─────┐
@@ -35,12 +36,13 @@ Completed phases are numbered in the order the implementation prompts arrived. U
 | **3** | Database schema, RLS & security tests | 12 migrations (33 tables, RLS + explicit grants everywhere, versioned JSON schemas, approval binding, audit log, RPCs), generated types, typed admin client, 173 pgTAP tests | pgTAP suite run against the dev project; Supabase advisors; Vitest static checks |
 | **4** | Application shell | Next.js 16 + Tailwind/shadcn, `@supabase/ssr` clients and session proxy, responsive navigation, workspace switcher, account and notification menus, reusable tables/forms/dialogs/filters/states, error boundaries, read-only approvals list, real overview counts | `tsc`, ESLint, `next build`, bundle secret scan, Vitest. Not verified end to end while signed in (no auth yet) |
 | **5** | Public website | Home, AI employees, use cases, integrations, security, pricing, getting started, contact (email delivery, feature-gated), sign-in/sign-up entry points, draft legal pages; built/planned status model; metadata, sitemap, robots; application moved to `/app` (ADR-020) | Vitest (links, honesty rules, metadata, contact handling), `next build`, bundle scan, browser check at 375 px and desktop |
+| **6** | Auth & organizations | Sign-up/sign-in, email confirmation and password reset (Supabase Auth, PKCE callback and token-hash routes), sign-out here/everywhere, proxy route protection, workspace creation/switching/settings, company details, members (roles, removal), invitations (email via Resend or a shareable link; resend, revoke, accept), leave/delete workspace, profile, onboarding checklist; migration `invitation_lookup` (ADR-021) | pgTAP 005 (59) plus 001–003 re-run against the dev project; Vitest 276; `tsc`, ESLint, `next build`, bundle scan; signed-out browser checks. **Not exercised live with real accounts** (see known-limitations) |
 
 ## Upcoming (in dependency order)
 
 | Phase | Goal | Key deliverables | Exit criteria | Prerequisites |
 |---|---|---|---|---|
-| **Auth & organizations** | People can sign in | Sign-up/sign-in pages replacing the Phase 5 placeholders, auth callback route (add it to the proxy matcher), org create/invite UI (using the RPCs), roles in UI, CI (typecheck/lint/test/build/bundle scan + `supabase test db`), Playwright | Auth flows work end-to-end; two-org isolation e2e passes; no secrets in bundle | `SUPABASE_SECRET_KEY`, Supabase CLI login, Resend (invitation email) |
+| **CI & end-to-end tests** | Every change checked automatically | GitHub Actions (typecheck, lint, Vitest, build, bundle scan, `supabase test db`), Playwright journeys for sign-up, invitations and two-workspace isolation against a test project | CI green on `main`; e2e journeys pass | Supabase CLI login + DB password as CI secrets, a test Supabase project or branch, test mailbox (or token-hash email templates) |
 | **Knowledge** | Business context | Business profile UI, storage bucket + policies, upload, parsing, chunking, Voyage embeddings, retrieval | Upload → retrieve cited chunks; cross-org storage access denied | `VOYAGE_API_KEY` |
 | **AI employees & model gateway** | Working employees | Templates, employee CRUD + versions UI, grants, `ModelGateway` + Anthropic adapter, chat (read-only tools) | Cited answer from Support employee; usage + cost recorded | `ANTHROPIC_API_KEY` |
 | **Tools, policy & approvals** | Supervised actions | Tool registry + executor, policy engine, approval inbox (`decide_approval`), kill switches, limits | Tool-executor security suite passes; rejection prevents execution | AI employees |
