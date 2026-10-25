@@ -16,7 +16,7 @@ Latest npm versions observed on 2026-10-17:
 
 | Package | Version | Note |
 |---|---|---|
-| next | 16.4.2 | App Router; requires Node ≥ 20.9 (local Node 24.20 ✅) |
+| next | 16.4.2 | App Router; requires Node ≥ 20.9 (local Node 24.20 ✅). Installed in Phase 4 as 16.4.0; **upgraded to 16.4.2** (with `eslint-config-next`) on 2026-10-25 for GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr (critical, unauthenticated RCE) and GHSA-p3m5-59mp-jv5r / CVE-2026-94482 (high, Server Actions DoS), all fixed in 16.4.1. 16.4.3 (2026-10-23, bug fixes only) was under a week old. |
 | react | 19.3.1 | |
 | typescript | 7.0.2 | Native (Go) compiler. Installed in Phase 2: `tsc --noEmit` and Vitest work. **Still verify** with Next.js and ESLint in the app-shell phase; fall back to 6.x if anything breaks. |
 | @anthropic-ai/sdk | 0.135.0 | Installed in Phase 2 (env connectivity check); model adapter in the AI-employees phase |
@@ -122,7 +122,7 @@ Web app on Vercel (EU region near Supabase), workers on Trigger.dev Cloud. Voice
 ## ADR-019 Dependency pinning and TypeScript 6/7 side by side — Accepted (Phase 4)
 
 **Decision:**
-- Exact versions only. At install time choose the newest release that is at least about a week old, so a compromised or broken release has time to be caught. Installed in Phase 4: `next` 16.4.0, `react`/`react-dom` 19.3.0, `@supabase/ssr` 0.12.7, `radix-ui` 1.7.0, `lucide-react` 1.54.0, `tailwindcss` 4.3.3, `shadcn` 4.21.4, `eslint` 10.12.0, `eslint-config-next` 16.4.0.
+- Exact versions only. At install time choose the newest release that is at least about a week old, so a compromised or broken release has time to be caught. Installed in Phase 4: `next` 16.4.0, `react`/`react-dom` 19.3.0, `@supabase/ssr` 0.12.7, `radix-ui` 1.7.0, `lucide-react` 1.54.0, `tailwindcss` 4.3.3, `shadcn` 4.21.4, `eslint` 10.12.0, `eslint-config-next` 16.4.0. On 2026-10-25 `next` and `eslint-config-next` moved to 16.4.2 for the Next.js 16.4.0 security advisories (ADR-002).
 - typescript-eslint does not support the TypeScript 7 JS API. Following Microsoft's side-by-side guidance, `@typescript/native` (TypeScript 7.0.2) provides the `tsc` command and the `typescript` package name is aliased to `@typescript/typescript6` (6.0) for tools that load the compiler API.
 **Consequences:** `tsc --noEmit`, ESLint, `next build` and Vitest all pass. Drop the alias when typescript-eslint supports TypeScript 7.
 
