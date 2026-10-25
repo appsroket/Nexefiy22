@@ -4,7 +4,7 @@ How Nexefiy is built and deployed on Vercel, what is configured today, and what 
 
 Related: [environment-variables.md](environment-variables.md) · [supabase-setup.md](supabase-setup.md) · [production-smoke-tests.md](production-smoke-tests.md) · [rollback-procedure.md](rollback-procedure.md) · [credential-setup.md](credential-setup.md)
 
-## 1. Current state (2026-10-19)
+## 1. Current state (2026-10-19, production and domain rows updated 2026-10-25)
 
 | Item | Value | How it was checked |
 |---|---|---|
@@ -16,10 +16,10 @@ Related: [environment-variables.md](environment-variables.md) · [supabase-setup
 | Install / build | `npm ci` from `package-lock.json` (auto-detected) / `next build` (default) | No overrides needed |
 | Production branch | `main`; Vercel's `nexefiy-git-main-…` alias shows `main` is tracked | project domains |
 | Latest Preview | `nexefiy-rhoqki916-leadsmatic.vercel.app` for `4a58a63` (PR #4 branch), `READY`, signed-out smoke tests pass (2026-10-25) | `list_deployments`, browser |
-| Production | **Live since 2026-10-25:** `https://nexefiy.vercel.app`, `main` @ `bf34723` (PR #4 fast-forwarded into `main`), `READY`; signed-out smoke tests pass. Earlier attempt from `main` @ `e6072c9` (Phase 6) failed (`ERROR`). Uses the **development** Supabase project (owner's decision, for now). | `list_deployments target=production`, curl, browser |
-| Domains | `nexefiy.vercel.app` (production alias), `nexefiy-leadsmatic.vercel.app`, `nexefiy-git-main-leadsmatic.vercel.app`; **no custom domain** | `list_project_domains`, `get_project` |
+| Production | **Live at `https://www.nexefiy.com`** (custom domain, 2026-10-25), `main` @ `da01194` (violet restyle); signed-out smoke tests pass there. First live on 2026-10-25 at `nexefiy.vercel.app` from `bf34723` (PR #4 fast-forwarded into `main`). Earlier attempt from `main` @ `e6072c9` (Phase 6) failed (`ERROR`). Uses the **development** Supabase project (owner's decision, for now). | GitHub commit statuses from Vercel, curl, browser |
+| Domains | **`www.nexefiy.com`** serves Production; `nexefiy.com` redirects (308) to it. Added by the owner in Vercel on 2026-10-25 (not read from Vercel here). `nexefiy.vercel.app` now returns 404 `DEPLOYMENT_NOT_FOUND`; `nexefiy-leadsmatic.vercel.app` (410) and `nexefiy-git-main-leadsmatic.vercel.app` (404) don't serve the app either | curl, 2026-10-25 |
 | Deployment protection | Vercel Authentication, "all except custom domains"; no password protection; no trusted IPs | `get_project` |
-| Environment variables | `NEXT_PUBLIC_APP_URL` = `https://nexefiy.vercel.app` (config, Production only, added 2026-10-25); plus 3 of type `sensitive`, targets Production + Preview: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. None for Development. Values were not read. | `filter_project_envs` (decrypt off) |
+| Environment variables | `NEXT_PUBLIC_APP_URL` (config, Production only, added 2026-10-25 as `https://nexefiy.vercel.app`; the live sitemap and `robots.txt` now use `https://www.nexefiy.com`, so it points at the custom domain, value not read); plus 3 of type `sensitive`, targets Production + Preview: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. None for Development. Values were not read. | `filter_project_envs` (decrypt off) |
 | Supabase | One project, `rnqrqconfbcrmszllxgu` — the **development** database (ADR-010). No production project exists. | [supabase-setup.md](supabase-setup.md) |
 
 **Why the production attempt failed (probable).** The Vercel connector is refused (`403`) for deployment details and build logs on this account, so the log was not read. A local build with `VERCEL_ENV=production` and no `NEXT_PUBLIC_APP_URL` fails the same way on purpose — `EnvValidationError: NEXT_PUBLIC_APP_URL is required in production` while prerendering `/_not-found` — and that variable is not set in Vercel. Set it for Production (§4) and the build gets past that check; confirm in the Vercel build log.
@@ -32,7 +32,7 @@ Related: [environment-variables.md](environment-variables.md) · [supabase-setup
 2. **Vercel plan.** The project is on Hobby, which Vercel limits to non-commercial use, cron jobs at most once a day (±59 min), and Vercel Authentication covering preview URLs only on the account's own login. A paying-customer SaaS needs Pro (or another plan you choose). `vercel.json` is written to deploy on Hobby (daily schedules); tighten the schedules on Pro (§5).
 3. ~~`NEXT_PUBLIC_APP_URL` for Production~~ — set 2026-10-25.
 4. ~~Merge PR #4 into `main`~~ — fast-forwarded 2026-10-25 (`bf34723`).
-5. **Supabase Auth URLs** for the production and preview hosts (§6) — otherwise confirmation and password-reset links fall back to the Site URL.
+5. **Supabase Auth URLs** for `https://www.nexefiy.com` and the preview hosts (§6) — otherwise confirmation and password-reset links fall back to the Site URL.
 6. **No billing exists.** There is no Stripe code, checkout, webhook route or entitlement enforcement (`docs/billing-and-entitlements.md` is a design). The billing phase is on hold until the core product works end to end. Do not set Stripe variables expecting anything to happen.
 7. **Nothing has been verified live**: no real sign-in, model call, HubSpot/Slack call, Trigger.dev job, or workflow run ([known-limitations.md](known-limitations.md)). A production release before that is a release of unverified behaviour.
 8. **No error monitoring.** `SENTRY_DSN` is in the catalog, but no Sentry SDK is installed or wired. Vercel runtime logs are the only signal (§8).
@@ -58,7 +58,7 @@ Add values in **Vercel → Project `nexefiy` → Settings → Environment Variab
 | `NEXT_PUBLIC_SUPABASE_URL` | production project | dev project | dev project | Set today for Production + Preview (same value) — split once a production project exists |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | production project | dev project | dev project | as above |
 | `SUPABASE_SECRET_KEY` | production `sb_secret_…` | dev `sb_secret_…` | — (use `.env.local`) | Replace `SUPABASE_SERVICE_ROLE_KEY` (legacy JWT, set today; the app accepts it with a warning) |
-| `NEXT_PUBLIC_APP_URL` | **required** — `https://nexefiy.vercel.app` or your custom domain | leave unset (defaults to `https://$VERCEL_URL`) | `http://localhost:3000` | Missing in Production today → build fails |
+| `NEXT_PUBLIC_APP_URL` | **required** — `https://www.nexefiy.com` | leave unset (defaults to `https://$VERCEL_URL`) | `http://localhost:3000` | Missing in Production → build fails |
 | `CRON_SECRET` | ≥ 32 random chars | optional (Vercel Cron only calls Production) | — | Cron routes return 503 while unset |
 | `INTEGRATION_ENCRYPTION_KEYS`, `INTEGRATION_ENCRYPTION_ACTIVE_KEY_ID` | own keyring | separate keyring | separate | Back up; losing it loses every stored integration token |
 | `ANTHROPIC_API_KEY` (+ `AI_PROVIDER` optional) | when enabling AI employees | test key or unset | — | Unset = AI features show "not configured" |
@@ -119,4 +119,6 @@ These dashboard settings could not be read from here (no connector tool exposes 
 
 ## 9. Custom domain
 
-Not configured. When you choose one: Vercel → Project → Settings → Domains → Add, then create the DNS records Vercel shows (an `A` record for an apex domain or a `CNAME` to Vercel's target for a subdomain) at your DNS provider, wait for "Valid Configuration", then set `NEXT_PUBLIC_APP_URL`, Supabase Site URL/Redirect URLs and every OAuth app's redirect URI to the new host and redeploy. Custom domains are exempt from Vercel Authentication under the current protection setting.
+**`www.nexefiy.com`** (added by the owner on 2026-10-25; `nexefiy.com` redirects to it). The live sitemap shows `NEXT_PUBLIC_APP_URL` follows it. Still to do for this host: Supabase Site URL and Redirect URLs (§6), and every OAuth app's redirect URI (`https://www.nexefiy.com/api/integrations/<provider>/callback`) once HubSpot/Slack apps exist. Custom domains are exempt from Vercel Authentication under the current protection setting.
+
+To change domains later: Vercel → Project → Settings → Domains → Add, create the DNS records Vercel shows (an `A` record for an apex domain or a `CNAME` to Vercel's target for a subdomain), wait for "Valid Configuration", then update `NEXT_PUBLIC_APP_URL`, Supabase URLs and OAuth redirect URIs, and redeploy.

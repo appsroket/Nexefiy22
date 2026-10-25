@@ -36,8 +36,8 @@ URL Configuration isn't readable with the tools used so far, so check it by hand
 
 | Setting | Development project (`rnqrqconfbcrmszllxgu`) | Production project (to create) |
 |---|---|---|
-| Site URL | `http://localhost:3000` | the production `NEXT_PUBLIC_APP_URL` |
-| Redirect URLs | `http://localhost:3000/**` and `https://nexefiy-*-leadsmatic.vercel.app/**` (Vercel Previews) | `https://<production host>/**` only |
+| Site URL | `https://www.nexefiy.com` while Production uses this project (owner's decision, 2026-10-25); `http://localhost:3000` once a production project exists | `https://www.nexefiy.com` |
+| Redirect URLs | `https://www.nexefiy.com/**` (while Production uses this project), `http://localhost:3000/**` and `https://nexefiy-*-leadsmatic.vercel.app/**` (Vercel Previews) | `https://www.nexefiy.com/**` only |
 
 - The app sends email links to `/auth/callback` (PKCE: sign-in links and password reset) and `/auth/confirm` (token hash); see `src/lib/config/endpoints.ts`. If a host is missing from Redirect URLs, Supabase falls back to the Site URL.
 - Vercel side: [production-deployment.md §6](production-deployment.md#6-supabase-for-each-environment).
