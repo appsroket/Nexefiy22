@@ -83,7 +83,7 @@ export function ContactForm({ available, initialTopic }: { available: boolean; i
         </div>
         <p className="text-sm text-muted-foreground">
           We use these details only to reply to you. See the draft{' '}
-          <Link href="/legal/privacy" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/legal/privacy" className="font-medium text-amethyst underline-offset-4 hover:underline">
             Privacy Policy
           </Link>
           .
@@ -133,7 +133,7 @@ function TopicField({ value, onChange }: { value: string; onChange: (event: { ta
         value={value}
         onChange={onChange}
         className={cn(
-          'h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30',
+          'h-10 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30',
           value === '' && 'text-muted-foreground',
         )}
         {...a11y}

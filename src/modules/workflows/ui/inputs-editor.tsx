@@ -20,7 +20,7 @@ export function InputsEditor({ definition, readOnly = false, onChange }: { defin
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3" aria-labelledby="inputs-heading">
         <div>
-          <h3 id="inputs-heading" className="text-sm font-semibold">
+          <h3 id="inputs-heading" className="text-sm font-medium">
             Run inputs
           </h3>
           <p className="text-sm text-muted-foreground">What a person fills in when starting a run. Steps use them as {'{{inputs.key}}'}. Each run’s values are checked against these on the server.</p>
@@ -77,7 +77,7 @@ export function InputsEditor({ definition, readOnly = false, onChange }: { defin
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="limits-heading">
-        <h3 id="limits-heading" className="text-sm font-semibold">
+        <h3 id="limits-heading" className="text-sm font-medium">
           Limits
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">

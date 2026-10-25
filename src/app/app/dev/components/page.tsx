@@ -108,7 +108,7 @@ export default async function ComponentGalleryPage({ searchParams }: { searchPar
       </SectionCard>
 
       <section aria-labelledby="cards-heading" className="flex flex-col gap-3">
-        <h2 id="cards-heading" className="text-base font-semibold">
+        <h2 id="cards-heading" className="text-base font-medium">
           Cards
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -120,7 +120,7 @@ export default async function ComponentGalleryPage({ searchParams }: { searchPar
       </section>
 
       <section aria-labelledby="table-heading" className="flex flex-col gap-3">
-        <h2 id="table-heading" className="text-base font-semibold">
+        <h2 id="table-heading" className="text-base font-medium">
           Table, filters and pagination
         </h2>
         <FilterBar
@@ -189,7 +189,7 @@ export default async function ComponentGalleryPage({ searchParams }: { searchPar
       </SectionCard>
 
       <section aria-labelledby="states-heading" className="flex flex-col gap-3">
-        <h2 id="states-heading" className="text-base font-semibold">
+        <h2 id="states-heading" className="text-base font-medium">
           Empty, error and loading states
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">

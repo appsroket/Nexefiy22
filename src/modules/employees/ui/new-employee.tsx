@@ -116,7 +116,7 @@ export function NewEmployee({
 
       {state.status === 'ready' ? (
         <div className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold">Review the draft</h2>
+          <h2 className="text-lg font-medium">Review the draft</h2>
           <Alert role="status">
             <Info aria-hidden="true" />
             <AlertTitle>{state.source === 'model' ? 'Drafted by the AI model' : state.source === 'template' ? 'Started from a template' : 'Drafted with keyword rules'}</AlertTitle>

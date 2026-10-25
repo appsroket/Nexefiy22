@@ -96,7 +96,7 @@ function SectionsGuide() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className="-mx-2 flex gap-3 rounded-lg px-2 py-2.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="-mx-2 flex gap-3 rounded-lg px-2 py-2.5 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">

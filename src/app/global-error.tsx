@@ -32,7 +32,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
           <button
             type="button"
             onClick={() => retry()}
-            className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             Try again
           </button>

@@ -29,7 +29,7 @@ export function TextField({
   return (
     <Field data-invalid={a11y['aria-invalid'] || undefined}>
       {labelAction ? (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 text-sm">
           <FieldLabel htmlFor={id}>{label}</FieldLabel>
           {labelAction}
         </div>
@@ -95,7 +95,7 @@ export function SelectField({
         {...selectProps}
         aria-invalid={a11y['aria-invalid']}
         aria-describedby={describedBy || undefined}
-        className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30"
+        className="h-9 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

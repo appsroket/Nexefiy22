@@ -26,7 +26,7 @@ import { ACTION_CATEGORIES, ACTION_CATEGORY_INFO, RISK_TIER_INFO, RISK_TIERS } f
 import { deletePolicy, savePolicy } from '../server/actions'
 
 const SELECT_CLASS =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60 dark:bg-input/30'
+  'h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60 dark:bg-input/30'
 
 const EFFECT_LABELS: Record<PolicyRule['effect'], string> = { allow: 'Allow without approval', require_approval: 'Require approval', deny: 'Block' }
 const ACTOR_LABELS: Record<(typeof POLICY_ACTORS)[number], string> = { employee: 'AI employees', workflow: 'Workflow steps', person: 'People' }

@@ -50,7 +50,7 @@ export function WorkflowViewer({
           <p className="text-sm text-muted-foreground">Select a step to see {steps ? 'what happened there' : 'its settings'}.</p>
         ) : steps ? (
           <div className="flex flex-col gap-2 text-sm">
-            <h3 className="font-semibold">{selected.label || selected.id}</h3>
+            <h3 className="font-medium">{selected.label || selected.id}</h3>
             {step ? (
               <>
                 <p>

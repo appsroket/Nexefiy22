@@ -6,7 +6,7 @@ import { CAPABILITY_AREAS, type CapabilityArea } from '@/modules/marketing/domai
 import { EMPLOYEE_CATEGORIES, HIGHLIGHTED_CATEGORY_IDS } from '@/modules/marketing/domain/employees'
 import { EARLY_ACCESS_HREF, PRODUCT_STATUS, PUBLIC_PAGES } from '@/modules/marketing/domain/site'
 import { CapabilityList, CtaBand, EmployeeCategoryCard } from '@/modules/marketing/ui/content-blocks'
-import { Container, Section, StatusLegend } from '@/modules/marketing/ui/layout-primitives'
+import { Container, HeroFrame, PillTag, Section, StatusLegend } from '@/modules/marketing/ui/layout-primitives'
 import { pageMetadata } from '@/modules/marketing/ui/page-metadata'
 import { ProductPreview } from '@/modules/marketing/ui/product-preview'
 
@@ -48,48 +48,49 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="border-b bg-gradient-to-b from-primary/5 to-transparent">
-        <Container className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1fr_1.1fr]">
+      <div className="bg-tint-wash">
+        <Container className="grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-[1fr_1.1fr]">
           <div className="flex flex-col gap-6">
-            <p className="w-fit rounded-full border bg-background px-3 py-1 text-sm text-muted-foreground">
-              In early development · AI employees not available yet
-            </p>
-            <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            <PillTag>In early development · AI employees not available yet</PillTag>
+            <h1 className="text-[2.5rem] leading-none font-medium tracking-tight text-balance sm:text-[3.5rem] lg:text-[4rem]">
               AI employees your business can supervise
             </h1>
-            <p className="text-lg text-pretty text-muted-foreground">
+            <p className="text-lg text-pretty text-slate">
               Nexefiy is being built so businesses can configure AI employees, connect the tools they already use,
               coordinate work through workflows, and approve what matters before it happens.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-10 px-4">
+              <Button asChild size="xl">
                 <Link href={EARLY_ACCESS_HREF}>Get early access</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-10 px-4">
+              <Button asChild size="xl" variant="outline">
                 <Link href="#whats-built">See what’s built</Link>
               </Button>
             </div>
           </div>
-          <ProductPreview />
+          <HeroFrame>
+            <ProductPreview />
+          </HeroFrame>
         </Container>
       </div>
 
       <Section
         id="how-it-works"
+        eyebrow="How it works"
         title="How Nexefiy is designed to work"
         description="Four things, in one place. Most of this is planned; the status of each part is listed further down."
       >
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
-            <li key={step.area} className="flex flex-col gap-3 rounded-xl border bg-card p-5">
-              <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            <li key={step.area} className="flex flex-col gap-3 rounded-lg bg-card p-6 shadow-sm">
+              <span className="flex size-10 items-center justify-center rounded-lg bg-secondary font-heading text-sm font-semibold text-amethyst">
                 {index + 1}
               </span>
-              <h3 className="font-semibold">{CAPABILITY_AREAS[step.area].title}</h3>
-              <p className="flex-1 text-sm text-pretty text-muted-foreground">{CAPABILITY_AREAS[step.area].summary}</p>
+              <h3 className="text-lg font-medium">{CAPABILITY_AREAS[step.area].title}</h3>
+              <p className="flex-1 text-sm text-pretty text-slate">{CAPABILITY_AREAS[step.area].summary}</p>
               <Link
                 href={step.href}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                className="inline-flex items-center gap-1 text-sm font-medium text-amethyst underline-offset-4 hover:underline"
               >
                 {step.linkLabel}
                 <ArrowRight aria-hidden="true" className="size-4" />
@@ -101,6 +102,7 @@ export default function HomePage() {
 
       <Section
         id="employees"
+        eyebrow="AI employees"
         tone="muted"
         title="AI employees for different parts of your business"
         description="Every role runs on the same foundation: instructions, knowledge, tools and approval rules. These are the categories we’re designing for."
@@ -110,7 +112,7 @@ export default function HomePage() {
             <EmployeeCategoryCard key={category.id} category={category} />
           ))}
         </ul>
-        <div>
+        <div className="flex justify-center">
           <Button asChild variant="outline" size="lg">
             <Link href={PUBLIC_PAGES.employees.path}>
               All AI employee roles
@@ -122,25 +124,26 @@ export default function HomePage() {
 
       <Section
         id="principles"
+        eyebrow="Principles"
         title="Supervised by default"
         description="The rules we’re building Nexefiy around. They describe the design; the list below says which parts exist today."
       >
         <ul className="grid gap-6 sm:grid-cols-2">
           {PRINCIPLES.map(({ icon: Icon, title, description }) => (
-            <li key={title} className="flex gap-4">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <li key={title} className="flex gap-4 rounded-lg bg-card p-6 shadow-sm">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-amethyst">
                 <Icon aria-hidden="true" className="size-5" />
               </span>
               <div className="flex flex-col gap-1">
-                <h3 className="font-semibold">{title}</h3>
-                <p className="text-sm text-pretty text-muted-foreground">{description}</p>
+                <h3 className="text-lg font-medium">{title}</h3>
+                <p className="text-sm text-pretty text-slate">{description}</p>
               </div>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section id="whats-built" tone="muted" title="What’s built and what’s planned" description={PRODUCT_STATUS}>
+      <Section id="whats-built" eyebrow="Status" tone="muted" align="start" title="What’s built and what’s planned" description={PRODUCT_STATUS}>
         <StatusLegend />
         <CapabilityList areas={['platform', 'configure', 'connect', 'coordinate', 'supervise']} />
       </Section>

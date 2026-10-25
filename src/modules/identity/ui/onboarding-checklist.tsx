@@ -53,7 +53,7 @@ export function OnboardingChecklist({ progress }: { progress: OnboardingProgress
               {step.status === 'todo' && step.href ? (
                 <Link
                   href={step.href}
-                  className="-mx-2 flex gap-3 rounded-lg px-2 py-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="-mx-2 flex gap-3 rounded-lg px-2 py-2 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {body}
                 </Link>

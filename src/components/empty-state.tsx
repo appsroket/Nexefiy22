@@ -25,7 +25,7 @@ export function EmptyState({
 }) {
   const Heading = headingLevel === 2 ? 'h2' : 'h3'
   return (
-    <Empty className={cn('border bg-card', className)}>
+    <Empty className={cn('border border-dashed bg-card', className)}>
       <EmptyHeader>
         {Icon ? (
           <EmptyMedia variant="icon">

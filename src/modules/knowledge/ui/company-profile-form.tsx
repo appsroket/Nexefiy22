@@ -33,7 +33,7 @@ function DayRow({ day, initial }: { day: Weekday; initial: { open: string; close
             name={`hours_${day}_open`}
             defaultValue={range.open}
             aria-label={`${WEEKDAY_LABELS[day]} opening time`}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className="h-9 rounded-lg border border-input bg-background px-2 text-sm"
           />
           <span aria-hidden="true">–</span>
           <input
@@ -41,7 +41,7 @@ function DayRow({ day, initial }: { day: Weekday; initial: { open: string; close
             name={`hours_${day}_close`}
             defaultValue={range.close === '24:00' ? '23:59' : range.close}
             aria-label={`${WEEKDAY_LABELS[day]} closing time`}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className="h-9 rounded-lg border border-input bg-background px-2 text-sm"
           />
         </div>
       )}

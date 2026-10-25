@@ -59,14 +59,14 @@ export default function IntegrationsPage() {
         <StatusLegend />
         <ul className="grid gap-4 md:grid-cols-2">
           {PLANNED_INTEGRATIONS.map((integration) => (
-            <li key={integration.id} className="flex flex-col gap-4 rounded-xl border bg-card p-5">
+            <li key={integration.id} className="flex flex-col gap-4 rounded-lg bg-card p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex size-10 items-center justify-center rounded-lg bg-muted">
                     <Plug aria-hidden="true" className="size-5 text-muted-foreground" />
                   </span>
                   <div>
-                    <h3 className="font-semibold">{integration.name}</h3>
+                    <h3 className="text-lg font-medium">{integration.name}</h3>
                     <p className="text-sm text-muted-foreground">{integration.category}</p>
                   </div>
                 </div>
@@ -106,9 +106,9 @@ export default function IntegrationsPage() {
       >
         <ul className="grid gap-4 sm:grid-cols-3">
           {BUILT_IN_TOOLS.map((tool) => (
-            <li key={tool.name} className="flex flex-col gap-2 rounded-xl border bg-card p-5">
-              <Wrench aria-hidden="true" className="size-5 text-primary" />
-              <h3 className="font-semibold">{tool.name}</h3>
+            <li key={tool.name} className="flex flex-col gap-2 rounded-lg bg-card p-6 shadow-sm">
+              <Wrench aria-hidden="true" className="size-5 text-amethyst" />
+              <h3 className="text-lg font-medium">{tool.name}</h3>
               <p className="text-sm text-pretty text-muted-foreground">{tool.description}</p>
             </li>
           ))}
@@ -118,12 +118,12 @@ export default function IntegrationsPage() {
       <Section id="security" title="How connections are protected">
         <ul className="grid gap-4 sm:grid-cols-2">
           {CONNECTION_SECURITY.map((item) => (
-            <li key={item.title} className="flex flex-col gap-2 rounded-xl border bg-card p-5">
+            <li key={item.title} className="flex flex-col gap-2 rounded-lg bg-card p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <KeyRound aria-hidden="true" className="size-5 text-primary" />
+                <KeyRound aria-hidden="true" className="size-5 text-amethyst" />
                 <CapabilityStatusBadge status={item.status} />
               </div>
-              <h3 className="font-semibold">{item.title}</h3>
+              <h3 className="text-lg font-medium">{item.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">{item.description}</p>
             </li>
           ))}

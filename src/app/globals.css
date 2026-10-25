@@ -2,12 +2,27 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Dark mode follows the operating-system setting. */
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/*
+ * Nexefiy design system ("violet observatory"): light theme only, one violet
+ * family plus neutrals. Status colours (success, warning, destructive) are the
+ * only other hues. These tokens feed the Tailwind utilities and shadcn/ui
+ * primitives; the rules are summarised in CLAUDE.md ("Design system").
+ */
+
+/* Light theme only: no `.dark` class is ever set, so `dark:` utilities never apply. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: var(--font-display);
     --font-sans: var(--font-sans);
+    --color-heading: var(--heading);
+    --color-plum: var(--plum);
+    --color-amethyst: var(--amethyst);
+    --color-mist-violet: var(--mist-violet);
+    --color-paper: var(--paper);
+    --color-smoke: var(--smoke);
+    --color-ash: var(--ash);
+    --color-slate: var(--slate);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -45,100 +60,83 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
+    /* 8px for cards, buttons, inputs and icon tiles; 24px for hero frames; full pills for tags and badges. */
+    --radius-sm: 0.375rem;
+    --radius-md: var(--radius);
     --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --radius-xl: var(--radius);
+    --radius-2xl: var(--radius);
+    --radius-3xl: 1.5rem;
+    --radius-4xl: 9999px;
+    /* Subtle, blue-tinted elevation; nothing heavier than lg. */
+    --shadow-xs: rgba(18, 55, 105, 0.06) 0 1px 2px, rgba(18, 55, 105, 0.06) 0 0 0 1px;
+    --shadow-sm: rgba(18, 55, 105, 0.08) 0 2px 4px, rgba(18, 55, 105, 0.04) 0 1px 1px, rgba(18, 55, 105, 0.08) 0 0 0 1px;
+    --shadow-md: rgba(18, 55, 105, 0.08) 0 2px 4px, rgba(18, 55, 105, 0.04) 0 1px 1px, rgba(18, 55, 105, 0.08) 0 0 0 1px;
+    --shadow-lg: rgba(14, 59, 101, 0.06) 0 32px 24px -12px, rgba(14, 59, 101, 0.01) 0 11px 4px, rgba(14, 59, 101, 0.02) 0 6px 4px, rgba(14, 59, 101, 0.03) 0 3px 3px, rgba(14, 59, 101, 0.04) 0 1px 1px;
+    --shadow-xl: var(--shadow-lg);
+    --shadow-2xl: var(--shadow-lg);
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.48 0.17 262);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.5 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    color-scheme: light;
+
+    /* Palette */
+    --deep-iris: #26114a;   /* headings, filled primary buttons */
+    --plum: #312749;        /* nav text, card titles, secondary headings */
+    --amethyst: #3e0079;    /* links, focus rings, icons, accent strokes; never body text */
+    --mist-violet: #edecff; /* tinted sections, pill tags, active nav */
+    --canvas: #ffffff;      /* page and cards */
+    --paper: #f6f7fa;       /* surface lift, alternate table rows */
+    --mist: #e6e2e3;        /* borders */
+    --smoke: #c1c7cf;       /* disabled */
+    --ash: #9491a1;         /* placeholders only: below AA contrast for text */
+    --slate: #615e6e;       /* secondary text */
+    --charcoal: #333333;    /* body text */
+
+    --heading: var(--deep-iris);
+    --background: var(--canvas);
+    --foreground: var(--charcoal);
+    --card: var(--canvas);
+    --card-foreground: var(--charcoal);
+    --popover: var(--canvas);
+    --popover-foreground: var(--charcoal);
+    --primary: var(--deep-iris);
+    --primary-foreground: #ffffff;
+    --secondary: var(--mist-violet);
+    --secondary-foreground: var(--deep-iris);
+    --muted: var(--paper);
+    --muted-foreground: var(--slate);
+    --accent: var(--mist-violet);
+    --accent-foreground: var(--deep-iris);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.62 0.15 262);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.48 0.17 262);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.62 0.15 262);
+    --border: var(--mist);
+    --input: var(--mist);
+    --ring: var(--amethyst);
+    --chart-1: var(--amethyst);
+    --chart-2: #6c4ba3;
+    --chart-3: #9b86c4;
+    --chart-4: #c9bfe6;
+    --chart-5: var(--deep-iris);
+    --radius: 0.5rem;
+    --sidebar: var(--canvas);
+    --sidebar-foreground: var(--plum);
+    --sidebar-primary: var(--deep-iris);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--mist-violet);
+    --sidebar-accent-foreground: var(--deep-iris);
+    --sidebar-border: var(--mist);
+    --sidebar-ring: var(--amethyst);
     --success: oklch(0.52 0.13 155);
     --success-foreground: oklch(0.985 0 0);
     --warning: oklch(0.58 0.14 70);
     --warning-foreground: oklch(0.985 0 0);
-    --info: oklch(0.52 0.15 250);
-    --info-foreground: oklch(0.985 0 0);
+    --info: var(--amethyst);
+    --info-foreground: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-      --background: oklch(0.145 0 0);
-      --foreground: oklch(0.985 0 0);
-      --card: oklch(0.205 0 0);
-      --card-foreground: oklch(0.985 0 0);
-      --popover: oklch(0.205 0 0);
-      --popover-foreground: oklch(0.985 0 0);
-      --primary: oklch(0.7 0.14 262);
-      --primary-foreground: oklch(0.18 0.03 262);
-      --secondary: oklch(0.269 0 0);
-      --secondary-foreground: oklch(0.985 0 0);
-      --muted: oklch(0.269 0 0);
-      --muted-foreground: oklch(0.708 0 0);
-      --accent: oklch(0.269 0 0);
-      --accent-foreground: oklch(0.985 0 0);
-      --destructive: oklch(0.704 0.191 22.216);
-      --border: oklch(1 0 0 / 10%);
-      --input: oklch(1 0 0 / 15%);
-      --ring: oklch(0.6 0.14 262);
-      --chart-1: oklch(0.87 0 0);
-      --chart-2: oklch(0.556 0 0);
-      --chart-3: oklch(0.439 0 0);
-      --chart-4: oklch(0.371 0 0);
-      --chart-5: oklch(0.269 0 0);
-      --sidebar: oklch(0.205 0 0);
-      --sidebar-foreground: oklch(0.985 0 0);
-      --sidebar-primary: oklch(0.7 0.14 262);
-      --sidebar-primary-foreground: oklch(0.18 0.03 262);
-      --sidebar-accent: oklch(0.269 0 0);
-      --sidebar-accent-foreground: oklch(0.985 0 0);
-      --sidebar-border: oklch(1 0 0 / 10%);
-      --sidebar-ring: oklch(0.6 0.14 262);
-      --success: oklch(0.72 0.14 155);
-      --success-foreground: oklch(0.2 0.03 155);
-      --warning: oklch(0.8 0.14 80);
-      --warning-foreground: oklch(0.22 0.04 80);
-      --info: oklch(0.72 0.12 250);
-      --info-foreground: oklch(0.2 0.03 250);
-  }
-}
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   body {
     @apply bg-background text-foreground antialiased;
@@ -146,6 +144,34 @@
   html {
     @apply font-sans;
   }
+  /* Headings use the display face; utilities on the element still win. */
+  :where(h1, h2) {
+    @apply font-heading text-heading;
+  }
+  :where(h3, h4, h5, h6) {
+    @apply font-heading text-plum;
+  }
+  ::placeholder {
+    color: var(--ash);
+  }
+}
+
+/*
+ * The saturated washes sit only behind white surfaces (preview frames, cards),
+ * never directly behind text. The pale tint may carry section text.
+ */
+@utility bg-hero-wash {
+  background-image:
+    linear-gradient(90deg, #b99aff, #7d43ff 10%, transparent),
+    linear-gradient(to bottom, #ffffff, var(--mist-violet));
+}
+
+@utility bg-tint-wash {
+  background-image: linear-gradient(to bottom, #ffffff, var(--mist-violet));
+}
+
+@utility bg-highlight {
+  background-image: linear-gradient(to right, #cf8aff, #ff66c1, #ffad74, #aa81ff);
 }
 
 /* Respect reduced-motion preferences for every animation and transition. */

@@ -26,7 +26,7 @@ export function SettingsTabs() {
                 href={tab.href}
                 aria-current={current ? 'page' : undefined}
                 className={cn(
-                  'inline-flex h-10 items-center border-b-2 px-1 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'inline-flex h-10 items-center border-b-2 px-1 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   current ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >

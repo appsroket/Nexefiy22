@@ -57,7 +57,7 @@ export function DataTable<Row>({
       // Focusable so keyboard users can scroll wide tables horizontally.
       tabIndex={0}
       className={cn(
-        'relative w-full overflow-x-auto rounded-xl border bg-card outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+        'relative w-full overflow-x-auto rounded-lg bg-card shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className,
       )}
     >
@@ -76,7 +76,7 @@ export function DataTable<Row>({
                   scope="col"
                   aria-sort={ariaSort}
                   className={cn(
-                    'px-4 text-muted-foreground',
+                    'px-4',
                     column.align === 'end' && 'text-right',
                     column.hideBelow && HIDE_BELOW[column.hideBelow],
                     column.className,
@@ -107,7 +107,7 @@ export function DataTable<Row>({
                   column.className,
                 )
                 return index === 0 ? (
-                  <th key={column.id} scope="row" className={cn('text-left align-middle font-medium', cellClass)}>
+                  <th key={column.id} scope="row" className={cn('text-left align-middle font-medium text-plum', cellClass)}>
                     {column.cell(row)}
                   </th>
                 ) : (
@@ -131,7 +131,7 @@ function SortLink({ label, href, direction }: { label: string; href: string; dir
     <Link
       href={href}
       scroll={false}
-      className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+      className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       {label}
       <Icon aria-hidden="true" className={cn('size-3.5', !direction && 'opacity-50')} />

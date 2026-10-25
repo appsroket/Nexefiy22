@@ -75,9 +75,9 @@ export default function PricingPage() {
       <Section id="plans" title="Planned plan structure" description="Billing will be per workspace, through Stripe.">
         <ul className="grid gap-4 md:grid-cols-3">
           {PLANS.map((plan) => (
-            <li key={plan.name} className="flex flex-col gap-3 rounded-xl border bg-card p-6">
+            <li key={plan.name} className="flex flex-col gap-3 rounded-lg bg-card shadow-sm p-6">
               <CapabilityStatusBadge status={plan.status} className="w-fit" />
-              <h3 className="text-lg font-semibold">{plan.name}</h3>
+              <h3 className="text-lg font-medium">{plan.name}</h3>
               <p className="flex-1 text-sm text-pretty text-muted-foreground">{plan.summary}</p>
               <p className="border-t pt-3 text-sm">
                 <span className="font-medium">Price: </span>
@@ -104,7 +104,7 @@ export default function PricingPage() {
       </Section>
 
       <Section id="questions" title="Questions">
-        <div className="flex max-w-3xl flex-col divide-y rounded-xl border bg-card">
+        <div className="flex max-w-3xl flex-col divide-y rounded-lg bg-card shadow-sm">
           {FAQ.map((item) => (
             <details key={item.question} className="group p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded font-medium [&::-webkit-details-marker]:hidden">

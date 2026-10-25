@@ -21,7 +21,7 @@ import { allowedApprovalModes } from '../domain/policy'
 import { APPROVAL_MODE_LABELS, RISK_LABELS, type ActionSummary, type ApprovalMode } from '../domain/types'
 
 const SELECT_CLASS =
-  'h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30'
+  'h-8 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30'
 
 function idempotencyLabel(action: ActionSummary): string {
   switch (action.idempotency.kind) {

@@ -23,7 +23,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       />
       <Container className="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.4fr_1fr]">
         <section aria-labelledby="contact-form-heading" className="flex flex-col gap-6">
-          <h2 id="contact-form-heading" className="text-xl font-semibold tracking-tight">
+          <h2 id="contact-form-heading" className="text-2xl leading-none font-medium tracking-tight">
             Send a message
           </h2>
           {available ? null : (
@@ -39,8 +39,8 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
           <ContactForm available={available} initialTopic={initialTopic} />
         </section>
         <aside aria-labelledby="contact-next-heading" className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3 rounded-xl border bg-card p-6">
-            <h2 id="contact-next-heading" className="font-semibold">
+          <div className="flex flex-col gap-3 rounded-lg bg-card shadow-sm p-6">
+            <h2 id="contact-next-heading" className="text-lg font-medium">
               What happens next
             </h2>
             <ul className="flex flex-col gap-2 text-sm text-pretty text-muted-foreground [&_li]:ml-4 [&_li]:list-disc">
@@ -49,8 +49,8 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               <li>For early access, we’ll contact you when AI employees are ready to try.</li>
             </ul>
           </div>
-          <div className="flex flex-col gap-3 rounded-xl border bg-card p-6">
-            <h2 className="font-semibold">Security reports</h2>
+          <div className="flex flex-col gap-3 rounded-lg bg-card shadow-sm p-6">
+            <h2 className="text-lg font-medium">Security reports</h2>
             <p className="text-sm text-pretty text-muted-foreground">
               Choose the Security topic. Describe the issue and how to reproduce it, but don’t send passwords, keys or
               personal data.

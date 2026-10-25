@@ -53,9 +53,9 @@ export default function AiEmployeesPage() {
       >
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {EMPLOYEE_BUILDING_BLOCKS.map((block, index) => (
-            <li key={block.title} className="flex flex-col gap-2 rounded-xl border bg-card p-5">
-              <span className="text-sm font-medium text-primary">Part {index + 1}</span>
-              <h3 className="font-semibold">{block.title}</h3>
+            <li key={block.title} className="flex flex-col gap-2 rounded-lg bg-card p-6 shadow-sm">
+              <span className="w-fit rounded-full bg-secondary px-3 py-1 text-xs font-medium text-amethyst">Part {index + 1}</span>
+              <h3 className="text-lg font-medium">{block.title}</h3>
               <p className="text-sm text-pretty text-muted-foreground">{block.description}</p>
             </li>
           ))}
@@ -74,11 +74,11 @@ export default function AiEmployeesPage() {
         </IllustrativeNote>
         <ul className="grid gap-4 lg:grid-cols-2">
           {EMPLOYEE_CATEGORIES.map((category) => (
-            <li key={category.id} id={category.id} className="flex scroll-mt-24 flex-col gap-4 rounded-xl border bg-card p-5">
+            <li key={category.id} id={category.id} className="flex scroll-mt-24 flex-col gap-4 rounded-lg bg-card p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <EmployeeIconBadge icon={category.icon} />
-                  <h3 className="text-lg font-semibold">{category.name}</h3>
+                  <h3 className="text-lg font-medium">{category.name}</h3>
                 </div>
                 <CapabilityStatusBadge status={category.status} />
               </div>
@@ -88,7 +88,7 @@ export default function AiEmployeesPage() {
                 <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
                   {category.exampleTasks.map((task) => (
                     <li key={task} className="flex gap-2">
-                      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amethyst" />
                       {task}
                     </li>
                   ))}
@@ -119,7 +119,7 @@ export default function AiEmployeesPage() {
       >
         <ul className="grid gap-3 sm:grid-cols-2">
           {LIMITS.map((limit) => (
-            <li key={limit} className="flex gap-3 rounded-xl border bg-card p-4 text-sm">
+            <li key={limit} className="flex gap-3 rounded-lg bg-card shadow-sm p-4 text-sm">
               <Ban aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-destructive" />
               {limit}
             </li>

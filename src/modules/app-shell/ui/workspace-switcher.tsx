@@ -66,7 +66,7 @@ export function WorkspaceSwitcher({
                 {active ? initials(active.name) : <Building2 className="size-4" />}
               </span>
               <span className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{title}</span>
+                <span className="truncate font-medium text-heading">{title}</span>
                 <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
               </span>
               {pending ? (

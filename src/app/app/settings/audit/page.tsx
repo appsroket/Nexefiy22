@@ -83,7 +83,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Pro
         <form className="mb-4 flex flex-wrap items-end gap-3" aria-label="Filter the audit log">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">Area</span>
-            <select name="group" defaultValue={group ?? ''} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30">
+            <select name="group" defaultValue={group ?? ''} className="h-9 rounded-lg border border-input bg-background px-3 text-sm dark:bg-input/30">
               <option value="">Everything</option>
               {Object.entries(AUDIT_GROUPS).map(([key, value]) => (
                 <option key={key} value={key}>
@@ -94,7 +94,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Pro
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">Who</span>
-            <select name="actor" defaultValue={actorType ?? ''} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30">
+            <select name="actor" defaultValue={actorType ?? ''} className="h-9 rounded-lg border border-input bg-background px-3 text-sm dark:bg-input/30">
               <option value="">Anyone</option>
               {Object.entries(ACTOR_TYPES).map(([key, label]) => (
                 <option key={key} value={key}>

@@ -18,7 +18,7 @@ export function DesktopNav() {
   const pathname = usePathname()
   return (
     <nav aria-label="Main" className="hidden xl:block">
-      <ul className="flex items-center gap-1">
+      <ul className="flex items-center gap-0.5">
         {HEADER_NAV.map((item) => {
           const active = isSiteLinkActive(item.href, pathname)
           return (
@@ -27,8 +27,8 @@ export function DesktopNav() {
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
-                  active && 'text-foreground',
+                  'rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap text-plum transition-colors hover:bg-secondary/70 hover:text-primary',
+                  active && 'bg-secondary text-primary',
                 )}
               >
                 {item.label}
@@ -68,8 +68,8 @@ export function MobileNav() {
                     aria-current={active ? 'page' : undefined}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      'block rounded-md px-3 py-2.5 text-base font-medium hover:bg-muted',
-                      active && 'bg-muted',
+                      'block rounded-full px-4 py-2.5 text-base font-medium text-plum hover:bg-secondary/70 hover:text-primary',
+                      active && 'bg-secondary text-primary',
                     )}
                   >
                     {item.label}
@@ -79,12 +79,12 @@ export function MobileNav() {
             })}
           </ul>
           <div className="flex flex-col gap-2 border-t pt-6">
-            <Button asChild size="lg" className="h-10">
+            <Button asChild size="lg">
               <Link href={EARLY_ACCESS_HREF} onClick={() => setOpen(false)}>
                 Get early access
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="h-10">
+            <Button asChild variant="outline" size="lg">
               <Link href={PUBLIC_PAGES.signIn.path} onClick={() => setOpen(false)}>
                 Sign in
               </Link>

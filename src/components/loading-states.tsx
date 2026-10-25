@@ -13,7 +13,7 @@ function LoadingRegion({ label, className, children }: { label: string; classNam
 
 export function TableSkeleton({ rows = 5, columns = 4, className }: { rows?: number; columns?: number; className?: string }) {
   return (
-    <LoadingRegion label="Loading table…" className={cn('overflow-hidden rounded-xl border bg-card', className)}>
+    <LoadingRegion label="Loading table…" className={cn('overflow-hidden rounded-lg bg-card shadow-sm', className)}>
       <div className="flex gap-4 border-b px-4 py-3">
         {Array.from({ length: columns }, (_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
@@ -34,7 +34,7 @@ export function CardGridSkeleton({ count = 3, className }: { count?: number; cla
   return (
     <LoadingRegion label="Loading…" className={cn('grid gap-4 sm:grid-cols-2 lg:grid-cols-3', className)}>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+        <div key={i} className="flex flex-col gap-3 rounded-lg bg-card shadow-sm p-4">
           <Skeleton className="h-4 w-1/3" />
           <Skeleton className="h-7 w-1/2" />
           <Skeleton className="h-3 w-2/3" />

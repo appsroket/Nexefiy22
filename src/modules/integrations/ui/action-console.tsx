@@ -20,7 +20,7 @@ import { APPROVAL_MODE_LABELS, type ActionSummary } from '../domain/types'
 const IDLE: ActionRunState = { status: 'idle' }
 
 const SELECT_CLASS =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30'
+  'h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30'
 
 function pretty(value: unknown): string {
   return JSON.stringify(value, null, 2)

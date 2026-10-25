@@ -11,7 +11,7 @@ export function PageTitle({ workspaceName }: { workspaceName: string | null }) {
   return (
     <p className="flex min-w-0 items-center gap-1.5 text-sm">
       {workspaceName ? (
-        <span className={item ? 'hidden truncate text-muted-foreground sm:inline' : 'truncate font-medium'}>
+        <span className={item ? 'hidden truncate text-muted-foreground sm:inline' : 'truncate font-medium text-plum'}>
           {workspaceName}
         </span>
       ) : null}
@@ -20,7 +20,7 @@ export function PageTitle({ workspaceName }: { workspaceName: string | null }) {
           /
         </span>
       ) : null}
-      {item ? <span className="truncate font-medium">{item.title}</span> : null}
+      {item ? <span className="truncate font-medium text-plum">{item.title}</span> : null}
     </p>
   )
 }

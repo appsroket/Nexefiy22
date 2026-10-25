@@ -24,7 +24,7 @@ export function SectionCard({
     <Card className={className}>
       <CardHeader>
         <CardTitle>
-          <h2 className="text-base font-semibold">{title}</h2>
+          <h2 className="text-base font-medium">{title}</h2>
         </CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
         {action ? <CardAction>{action}</CardAction> : null}
@@ -65,7 +65,7 @@ export function MetricCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         {hasValue ? (
-          <p className="text-2xl font-semibold tabular-nums">{value}</p>
+          <p className="font-heading text-[2rem] leading-none font-medium text-heading tabular-nums">{value}</p>
         ) : (
           <p className="text-sm font-medium text-muted-foreground">{emptyText}</p>
         )}

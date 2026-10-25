@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist_Mono, Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import type { ReactNode } from 'react'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -8,7 +8,9 @@ import { cn } from '@/lib/utils'
 
 import './globals.css'
 
-const sans = Geist({ subsets: ['latin'], variable: '--font-sans' })
+// Inter for UI and body text, Plus Jakarta Sans for display and headings.
+const sans = Inter({ subsets: ['latin'], variable: '--font-sans' })
+const display = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['500', '600'], variable: '--font-display' })
 const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 // Not indexed unless a layout below says otherwise: the public website opts in
@@ -24,19 +26,16 @@ export function generateMetadata(): Metadata {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
+  themeColor: '#ffffff',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={cn('font-sans', sans.variable, mono.variable)}>
+    <html lang="en" className={cn('font-sans', sans.variable, display.variable, mono.variable)}>
       <body className="min-h-svh">
         <a
           href="#main-content"
-          className="sr-only z-50 rounded-md bg-background px-3 py-2 text-sm font-medium shadow focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-3 focus:ring-ring/50"
+          className="sr-only z-50 rounded-lg bg-background px-3 py-2 text-sm font-medium shadow-sm focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-2 focus:ring-ring"
         >
           Skip to main content
         </a>

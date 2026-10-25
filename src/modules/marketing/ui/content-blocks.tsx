@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { CAPABILITY_AREAS, CAPABILITIES, STATUS_ORDER, type CapabilityArea } from '../domain/capabilities'
 import type { EmployeeCategory, EmployeeIcon } from '../domain/employees'
 import { EARLY_ACCESS_HREF, PUBLIC_PAGES } from '../domain/site'
-import { CapabilityStatusBadge, Container } from './layout-primitives'
+import { CapabilityStatusBadge, Container, HeroFrame } from './layout-primitives'
 
 const EMPLOYEE_ICONS: Record<EmployeeIcon, LucideIcon> = {
   support: Headset,
@@ -35,7 +35,7 @@ const EMPLOYEE_ICONS: Record<EmployeeIcon, LucideIcon> = {
 export function EmployeeIconBadge({ icon, className }: { icon: EmployeeIcon; className?: string }) {
   const Icon = EMPLOYEE_ICONS[icon]
   return (
-    <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary', className)}>
+    <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-amethyst', className)}>
       <Icon aria-hidden="true" className="size-5" />
     </span>
   )
@@ -45,13 +45,13 @@ export function EmployeeIconBadge({ icon, className }: { icon: EmployeeIcon; cla
 export function EmployeeCategoryCard({ category, headingLevel = 3 }: { category: EmployeeCategory; headingLevel?: 3 | 4 }) {
   const Heading = `h${headingLevel}` as const
   return (
-    <li className="flex flex-col gap-3 rounded-xl border bg-card p-5">
+    <li className="flex flex-col gap-3 rounded-lg bg-card p-6 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <EmployeeIconBadge icon={category.icon} />
         <CapabilityStatusBadge status={category.status} />
       </div>
-      <Heading className="font-semibold">{category.name}</Heading>
-      <p className="text-sm text-pretty text-muted-foreground">{category.summary}</p>
+      <Heading className="text-lg font-medium">{category.name}</Heading>
+      <p className="text-sm text-pretty text-slate">{category.summary}</p>
     </li>
   )
 }
@@ -62,10 +62,10 @@ export function CapabilityList({ areas, headingLevel = 3 }: { areas: readonly Ca
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {areas.map((area) => (
-        <div key={area} className="flex flex-col gap-4 rounded-xl border bg-card p-5">
+        <div key={area} className="flex flex-col gap-4 rounded-lg bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-1">
-            <Heading className="font-semibold">{CAPABILITY_AREAS[area].title}</Heading>
-            <p className="text-sm text-pretty text-muted-foreground">{CAPABILITY_AREAS[area].summary}</p>
+            <Heading className="text-lg font-medium">{CAPABILITY_AREAS[area].title}</Heading>
+            <p className="text-sm text-pretty text-slate">{CAPABILITY_AREAS[area].summary}</p>
           </div>
           <ul className="flex flex-col divide-y">
             {[...CAPABILITIES[area]]
@@ -73,10 +73,10 @@ export function CapabilityList({ areas, headingLevel = 3 }: { areas: readonly Ca
               .map((capability) => (
                 <li key={capability.id} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm font-medium">{capability.title}</span>
+                    <span className="text-sm font-medium text-plum">{capability.title}</span>
                     <CapabilityStatusBadge status={capability.status} />
                   </div>
-                  <p className="text-sm text-pretty text-muted-foreground">{capability.description}</p>
+                  <p className="text-sm text-pretty text-slate">{capability.description}</p>
                 </li>
               ))}
           </ul>
@@ -95,29 +95,26 @@ export function CtaBand({
   description?: string
 }) {
   return (
-    <section aria-labelledby="cta-heading" className="py-14 sm:py-20">
+    <section aria-labelledby="cta-heading" className="py-16 sm:py-20">
       <Container>
-        <div className="flex flex-col gap-6 rounded-2xl bg-primary px-6 py-10 text-primary-foreground sm:px-10 md:flex-row md:items-center md:justify-between">
-          <div className="flex max-w-2xl flex-col gap-2">
-            <h2 id="cta-heading" className="text-2xl font-semibold tracking-tight text-balance">
-              {title}
-            </h2>
-            <p className="text-pretty opacity-90">{description}</p>
+        <HeroFrame>
+          <div className="flex flex-col gap-6 rounded-lg bg-card px-6 py-10 shadow-lg sm:px-10 md:flex-row md:items-center md:justify-between">
+            <div className="flex max-w-2xl flex-col gap-3">
+              <h2 id="cta-heading" className="text-[2rem] leading-none font-medium tracking-tight text-balance">
+                {title}
+              </h2>
+              <p className="text-pretty text-slate">{description}</p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-3">
+              <Button asChild size="xl">
+                <Link href={EARLY_ACCESS_HREF}>Get early access</Link>
+              </Button>
+              <Button asChild size="xl" variant="outline">
+                <Link href={PUBLIC_PAGES.gettingStarted.path}>How to get started</Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-3">
-            <Button asChild size="lg" variant="secondary" className="h-10 px-4">
-              <Link href={EARLY_ACCESS_HREF}>Get early access</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-10 border-primary-foreground/40 bg-transparent px-4 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
-              <Link href={PUBLIC_PAGES.gettingStarted.path}>How to get started</Link>
-            </Button>
-          </div>
-        </div>
+        </HeroFrame>
       </Container>
     </section>
   )

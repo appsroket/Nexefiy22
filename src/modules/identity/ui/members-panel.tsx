@@ -123,7 +123,7 @@ function MemberRow({
               value={member.role}
               disabled={pending}
               onChange={(event) => changeRole(event.target.value)}
-              className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+              className="h-8 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30"
             >
               {permissions.roleOptions.map((role) => (
                 <option key={role} value={role}>

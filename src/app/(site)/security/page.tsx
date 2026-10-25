@@ -30,9 +30,9 @@ export default function SecurityPage() {
         >
           <ul className="grid gap-4 md:grid-cols-2">
             {topic.measures.map((measure) => (
-              <li key={measure.title} className="flex flex-col gap-2 rounded-xl border bg-card p-5">
+              <li key={measure.title} className="flex flex-col gap-2 rounded-lg bg-card p-6 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className="font-semibold">{measure.title}</h3>
+                  <h3 className="text-lg font-medium">{measure.title}</h3>
                   <CapabilityStatusBadge status={measure.status} />
                 </div>
                 <p className="text-sm text-pretty text-muted-foreground">{measure.description}</p>

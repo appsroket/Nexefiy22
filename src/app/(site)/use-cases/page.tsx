@@ -59,15 +59,15 @@ export default function UseCasesPage() {
                 key={useCase.id}
                 id={useCase.id}
                 aria-labelledby={`${useCase.id}-heading`}
-                className="grid scroll-mt-24 gap-6 rounded-2xl border bg-card p-6 lg:grid-cols-[1fr_1.2fr]"
+                className="grid scroll-mt-24 gap-6 rounded-lg bg-card shadow-sm p-6 lg:grid-cols-[1fr_1.2fr]"
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <EmployeeIconBadge icon={category.icon} />
-                    <p className="text-sm font-medium text-primary">{useCase.category}</p>
+                    <p className="w-fit rounded-full bg-secondary px-3 py-1 text-xs font-medium text-amethyst">{useCase.category}</p>
                     <CapabilityStatusBadge status={useCase.status} />
                   </div>
-                  <h2 id={`${useCase.id}-heading`} className="text-xl font-semibold tracking-tight text-balance">
+                  <h2 id={`${useCase.id}-heading`} className="text-2xl leading-none font-medium tracking-tight text-balance">
                     {useCase.title}
                   </h2>
                   <p className="text-pretty text-muted-foreground">{useCase.situation}</p>
@@ -91,7 +91,7 @@ export default function UseCasesPage() {
                     </ol>
                   </div>
                   <p className="flex gap-2 rounded-lg bg-muted/60 p-3 text-sm">
-                    <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amethyst" />
                     <span>
                       <span className="font-medium">Where you stay in control: </span>
                       {useCase.control}

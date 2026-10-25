@@ -21,8 +21,8 @@ export function LegalDocument({ title, summary, sections }: { title: string; sum
   return (
     <Container className="flex flex-col gap-8 py-12 sm:py-16">
       <header className="flex max-w-3xl flex-col gap-4">
-        <p className="text-sm font-medium text-primary">Legal · Draft</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{title}</h1>
+        <p className="w-fit rounded-full bg-secondary px-3 py-1 text-xs font-medium text-amethyst">Legal · Draft</p>
+        <h1 className="text-[2.5rem] leading-none font-medium tracking-tight text-balance sm:text-[3.5rem]">{title}</h1>
         <p className="text-pretty text-muted-foreground">{summary}</p>
         <Alert className="border-warning/50 bg-warning/10">
           <FileWarning aria-hidden="true" />
@@ -53,7 +53,7 @@ export function LegalDocument({ title, summary, sections }: { title: string; sum
         <div className="flex max-w-3xl flex-col gap-10">
           {sections.map((section, index) => (
             <section key={section.id} id={section.id} aria-labelledby={`${section.id}-heading`} className="scroll-mt-24">
-              <h2 id={`${section.id}-heading`} className="text-xl font-semibold tracking-tight">
+              <h2 id={`${section.id}-heading`} className="text-2xl leading-none font-medium tracking-tight">
                 {index + 1}. {section.title}
               </h2>
               <div className="mt-3 flex flex-col gap-3 text-pretty text-muted-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-foreground [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5">

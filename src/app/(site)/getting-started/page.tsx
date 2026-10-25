@@ -81,13 +81,13 @@ export default function GettingStartedPage() {
       <Section id="today" title="What you can do today">
         <ul className="grid gap-4 md:grid-cols-3">
           {TODAY.map(({ icon: Icon, title, description, href, linkLabel }) => (
-            <li key={title} className="flex flex-col gap-3 rounded-xl border bg-card p-5">
-              <Icon aria-hidden="true" className="size-5 text-primary" />
-              <h3 className="font-semibold">{title}</h3>
+            <li key={title} className="flex flex-col gap-3 rounded-lg bg-card p-6 shadow-sm">
+              <Icon aria-hidden="true" className="size-5 text-amethyst" />
+              <h3 className="text-lg font-medium">{title}</h3>
               <p className="flex-1 text-sm text-pretty text-muted-foreground">{description}</p>
               <Link
                 href={href}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                className="inline-flex items-center gap-1 text-sm font-medium text-amethyst underline-offset-4 hover:underline"
               >
                 {linkLabel}
                 <ArrowRight aria-hidden="true" className="size-4" />
@@ -106,13 +106,13 @@ export default function GettingStartedPage() {
         <StatusLegend />
         <ol className="flex max-w-3xl flex-col gap-3">
           {SETUP_STEPS.map((step, index) => (
-            <li key={step.title} className="flex gap-4 rounded-xl border bg-card p-5">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            <li key={step.title} className="flex gap-4 rounded-lg bg-card p-6 shadow-sm">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary font-heading text-sm font-semibold text-amethyst">
                 {index + 1}
               </span>
               <div className="flex flex-1 flex-col gap-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-semibold">{step.title}</h3>
+                  <h3 className="text-lg font-medium">{step.title}</h3>
                   <CapabilityStatusBadge status={step.status} />
                 </div>
                 <p className="text-sm text-pretty text-muted-foreground">{step.description}</p>
