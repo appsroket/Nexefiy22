@@ -10,7 +10,7 @@
 | Region | eu-north-1 (Stockholm) |
 | Postgres | 17 |
 | Role | **Development database** (decided 2026-10-17, ADR-010). Create a separate production project before launch. |
-| Schema state (2026-10-17) | 12 migrations applied, 33 tables, RLS on all; no application data |
+| Schema state (2026-10-19) | 24 migrations applied, 42 tables, RLS on all; no application data |
 
 ## API keys
 
@@ -32,9 +32,15 @@ Credential setup details: [credential-setup.md](credential-setup.md#a-supabase).
 
 ## Auth configuration (Dashboard → Authentication)
 
-To configure with the app-shell phase:
-- Site URL: `http://localhost:3000` for dev; production domain later.
-- Redirect URLs: `http://localhost:3000/**`, Vercel preview pattern, production URL. The app's callback route is `/auth/callback` (`src/lib/config/endpoints.ts`).
+URL Configuration isn't readable with the tools used so far, so check it by hand in each project (unverified as of 2026-10-19).
+
+| Setting | Development project (`rnqrqconfbcrmszllxgu`) | Production project (to create) |
+|---|---|---|
+| Site URL | `http://localhost:3000` | the production `NEXT_PUBLIC_APP_URL` |
+| Redirect URLs | `http://localhost:3000/**` and `https://nexefiy-*-leadsmatic.vercel.app/**` (Vercel Previews) | `https://<production host>/**` only |
+
+- The app sends email links to `/auth/callback` (PKCE: sign-in links and password reset) and `/auth/confirm` (token hash); see `src/lib/config/endpoints.ts`. If a host is missing from Redirect URLs, Supabase falls back to the Site URL.
+- Vercel side: [production-deployment.md §6](production-deployment.md#6-supabase-for-each-environment).
 - Email confirmations: on — `accept_invitation()` requires a confirmed email. Custom SMTP via Resend before launch — settings in [credential-setup.md](credential-setup.md#c-email-resend).
 - Minimum password length 10; leaked-password protection on (if available on plan).
 

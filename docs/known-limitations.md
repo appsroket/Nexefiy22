@@ -2,6 +2,27 @@
 
 Honest list of what does not exist or is unverified. Update every phase.
 
+## Deployment readiness (2026-10-19)
+
+Details: [production-deployment.md](production-deployment.md).
+
+### Implemented and verified
+- Vercel project `nexefiy` exists, connected to GitHub; every branch push has built a Preview (`READY`, latest `8b08b2b`). Read through the Vercel connector.
+- Locally: `tsc`, ESLint, Vitest, `next build` and the bundle secret scan pass; a local production server sends the new security headers, redirects signed-out `/app` to `/sign-in`, and the cron routes answer 503 while `CRON_SECRET` is unset. A build with `VERCEL_ENV=production` and no `NEXT_PUBLIC_APP_URL` fails with `EnvValidationError`, as designed.
+- `vercel.json` now schedules the four cron routes once a day (the Hobby limit); the older "`vercel.json` doesn't exist" notes below are superseded.
+
+### Not verified yet
+- **No successful production deployment.** The only attempt (`main` @ Phase 6) failed; its build log could not be read (connector `403`). The probable cause, `NEXT_PUBLIC_APP_URL` missing in Production, is reproduced locally only.
+- Preview `8b08b2b` was opened (browser signed in to Vercel) on 2026-10-20: public pages pass, but every session route returned 500 because `src/lib/env/public.ts` required `NEXT_PUBLIC_APP_URL` on Previews. Fixed in the working tree and checked with a local Preview-mode build only; not yet deployed. No account was created on the Preview, so sign-up/sign-in and the app were not exercised.
+- Supabase Auth Site URL / Redirect URLs were not read (no tool exposes them).
+
+### Limitations
+- One Supabase project (development); Vercel Production and Preview share its values. A production project must exist before real users.
+- Hobby plan: daily cron only (±59 min), non-commercial use. Without Trigger.dev, a task interrupted mid-step can wait up to a day for the cron backstop.
+- No error monitoring (Sentry is in the env catalog but not installed), no uptime checks, no CI, no full Content-Security-Policy (only `frame-ancestors 'none'`).
+- The form rate limiter is per server instance (in memory), so on Vercel it only slows bursts that reach the same instance; Supabase Auth applies its own limits to sign-in and sign-up.
+- Billing is not built: no Stripe code, webhook route or entitlement enforcement.
+
 ## As of Phase 15 (2026-10-19)
 
 ### Implemented and verified

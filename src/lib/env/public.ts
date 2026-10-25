@@ -1,6 +1,9 @@
 // Browser-safe configuration. Only NEXT_PUBLIC_* values, which are public by
 // design. Each variable is referenced literally (process.env.NEXT_PUBLIC_X)
 // because Next.js inlines only literal references into client bundles.
+// NEXT_PUBLIC_VERCEL_ENV and NEXT_PUBLIC_VERCEL_URL are Vercel's own system
+// variables (the deployment's environment and hostname, not secrets); Vercel
+// exposes them to Next.js builds by default.
 
 import { httpUrl, startsWithAny, supabaseLegacyJwt } from './validators'
 
@@ -16,13 +19,17 @@ export interface RawPublicEnv {
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string
   NEXT_PUBLIC_APP_URL?: string
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?: string
+  NEXT_PUBLIC_VERCEL_URL?: string
 }
+
+export type PublicDeployment = 'development' | 'preview' | 'production'
 
 export class PublicEnvError extends Error {
   override name = 'PublicEnvError'
 }
 
-export function parsePublicEnv(raw: RawPublicEnv, isProduction: boolean): PublicEnv {
+/** Same defaults as the server (core.ts): localhost in development, the deployment URL in preview, required in production. */
+export function parsePublicEnv(raw: RawPublicEnv, deployment: PublicDeployment): PublicEnv {
   const problems: string[] = []
   const supabaseUrl = raw.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? ''
   const supabasePublishableKey = raw.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ?? ''
@@ -34,8 +41,13 @@ export function parsePublicEnv(raw: RawPublicEnv, isProduction: boolean): Public
 
   let appUrl = raw.NEXT_PUBLIC_APP_URL?.trim()
   if (!appUrl) {
-    if (isProduction) problems.push('NEXT_PUBLIC_APP_URL is missing')
-    appUrl = 'http://localhost:3000'
+    const vercelUrl = raw.NEXT_PUBLIC_VERCEL_URL?.trim()
+    if (deployment === 'development') appUrl = 'http://localhost:3000'
+    else if (deployment === 'preview' && vercelUrl) appUrl = `https://${vercelUrl}`
+    else {
+      problems.push(`NEXT_PUBLIC_APP_URL is missing (required in ${deployment})`)
+      appUrl = 'http://localhost:3000'
+    }
   } else if (!httpUrl(appUrl)) {
     problems.push('NEXT_PUBLIC_APP_URL is not a valid URL')
   }
@@ -61,8 +73,15 @@ export function getPublicEnv(): PublicEnv {
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
     },
-    process.env.NODE_ENV === 'production',
+    publicDeployment(process.env.NEXT_PUBLIC_VERCEL_ENV, process.env.NODE_ENV),
   )
   return cached
+}
+
+/** Vercel's environment when deployed there; otherwise production builds count as production. */
+export function publicDeployment(vercelEnv: string | undefined, nodeEnv: string | undefined): PublicDeployment {
+  if (vercelEnv === 'production' || vercelEnv === 'preview' || vercelEnv === 'development') return vercelEnv
+  return nodeEnv === 'production' ? 'production' : 'development'
 }

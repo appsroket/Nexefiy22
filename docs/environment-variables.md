@@ -73,6 +73,16 @@ Exposure: **public** = inlined into browser bundles (must never be secret) · **
 
 Feature dependencies: `googleIntegration`, `slackIntegration`, `hubspotIntegration` → require `credentialEncryption` and `supabaseAdmin`.
 
+## Vercel environments
+
+Which value goes to Production, Preview and Development, and what Vercel holds today: [production-deployment.md §4](production-deployment.md#4-environment-variables-per-vercel-environment). In short:
+
+- **Production** needs `NEXT_PUBLIC_APP_URL` (the build fails without it) and its own Supabase project, keyring, Trigger.dev production key and OAuth apps.
+- **Preview** leaves `NEXT_PUBLIC_APP_URL` unset and uses development credentials. The app URL then defaults to `https://$VERCEL_URL` on the server and to `https://$NEXT_PUBLIC_VERCEL_URL` in `src/lib/env/public.ts`. Both are Vercel system variables, and Vercel exposes them by default (Settings → Environment Variables → "Automatically expose System Environment Variables" must stay on).
+- **Development** values live in `.env.local`, or come from `vercel env pull`.
+- `NEXT_PUBLIC_*` values are inlined at build time, so changing one needs a redeploy. Every other variable also only reaches new deployments.
+- As of 2026-10-19 Vercel holds only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (the legacy name, which the app accepts with a warning), for Production and Preview.
+
 ## Adding a variable
 
 1. Add it to `ENV_VARS` in `src/lib/env/catalog.ts` (feature, exposure, secret flag, validator, format hint, where to find it).
