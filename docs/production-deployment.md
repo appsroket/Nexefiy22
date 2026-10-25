@@ -16,10 +16,10 @@ Related: [environment-variables.md](environment-variables.md) · [supabase-setup
 | Install / build | `npm ci` from `package-lock.json` (auto-detected) / `next build` (default) | No overrides needed |
 | Production branch | `main`; Vercel's `nexefiy-git-main-…` alias shows `main` is tracked | project domains |
 | Latest Preview | `nexefiy-rhoqki916-leadsmatic.vercel.app` for `4a58a63` (PR #4 branch), `READY`, signed-out smoke tests pass (2026-10-25) | `list_deployments`, browser |
-| Production | **Never succeeded.** One attempt from `main` @ `e6072c9` (Phase 6), state `ERROR` | `list_deployments target=production` |
+| Production | **Live since 2026-10-25:** `https://nexefiy.vercel.app`, `main` @ `bf34723` (PR #4 fast-forwarded into `main`), `READY`; signed-out smoke tests pass. Earlier attempt from `main` @ `e6072c9` (Phase 6) failed (`ERROR`). Uses the **development** Supabase project (owner's decision, for now). | `list_deployments target=production`, curl, browser |
 | Domains | `nexefiy.vercel.app` (production alias), `nexefiy-leadsmatic.vercel.app`, `nexefiy-git-main-leadsmatic.vercel.app`; **no custom domain** | `list_project_domains`, `get_project` |
 | Deployment protection | Vercel Authentication, "all except custom domains"; no password protection; no trusted IPs | `get_project` |
-| Environment variables | 3, all type `sensitive`, targets Production + Preview: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. None for Development. Values were not read. | `filter_project_envs` (decrypt off) |
+| Environment variables | `NEXT_PUBLIC_APP_URL` = `https://nexefiy.vercel.app` (config, Production only, added 2026-10-25); plus 3 of type `sensitive`, targets Production + Preview: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. None for Development. Values were not read. | `filter_project_envs` (decrypt off) |
 | Supabase | One project, `rnqrqconfbcrmszllxgu` — the **development** database (ADR-010). No production project exists. | [supabase-setup.md](supabase-setup.md) |
 
 **Why the production attempt failed (probable).** The Vercel connector is refused (`403`) for deployment details and build logs on this account, so the log was not read. A local build with `VERCEL_ENV=production` and no `NEXT_PUBLIC_APP_URL` fails the same way on purpose — `EnvValidationError: NEXT_PUBLIC_APP_URL is required in production` while prerendering `/_not-found` — and that variable is not set in Vercel. Set it for Production (§4) and the build gets past that check; confirm in the Vercel build log.
@@ -30,8 +30,8 @@ Related: [environment-variables.md](environment-variables.md) · [supabase-setup
 
 1. **Production database.** Vercel's Production and Preview environments currently share the Supabase values, which (if they hold the only project's keys) point at the development database. ADR-010 and [supabase-setup.md](supabase-setup.md#staging-and-production-safe-rollout) require a separate production project. Create it, apply all 24 migrations there with the reviewed workflow, and set Production-only Supabase variables.
 2. **Vercel plan.** The project is on Hobby, which Vercel limits to non-commercial use, cron jobs at most once a day (±59 min), and Vercel Authentication covering preview URLs only on the account's own login. A paying-customer SaaS needs Pro (or another plan you choose). `vercel.json` is written to deploy on Hobby (daily schedules); tighten the schedules on Pro (§5).
-3. **`NEXT_PUBLIC_APP_URL` for Production** (build fails without it — by design).
-4. **Merge PR #4 into `main`.** `main` is at Phase 6; everything since (Phases 7–15, migrations applied to dev) is on `ccr-3d2f7a33-fp6zyi`.
+3. ~~`NEXT_PUBLIC_APP_URL` for Production~~ — set 2026-10-25.
+4. ~~Merge PR #4 into `main`~~ — fast-forwarded 2026-10-25 (`bf34723`).
 5. **Supabase Auth URLs** for the production and preview hosts (§6) — otherwise confirmation and password-reset links fall back to the Site URL.
 6. **No billing exists.** There is no Stripe code, checkout, webhook route or entitlement enforcement (`docs/billing-and-entitlements.md` is a design). The billing phase is on hold until the core product works end to end. Do not set Stripe variables expecting anything to happen.
 7. **Nothing has been verified live**: no real sign-in, model call, HubSpot/Slack call, Trigger.dev job, or workflow run ([known-limitations.md](known-limitations.md)). A production release before that is a release of unverified behaviour.

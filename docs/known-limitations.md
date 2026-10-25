@@ -12,7 +12,7 @@ Details: [production-deployment.md](production-deployment.md).
 - `vercel.json` now schedules the four cron routes once a day (the Hobby limit); the older "`vercel.json` doesn't exist" notes below are superseded.
 
 ### Not verified yet
-- **No successful production deployment.** The only attempt (`main` @ Phase 6) failed; its build log could not be read (connector `403`). The probable cause, `NEXT_PUBLIC_APP_URL` missing in Production, is reproduced locally only.
+- **Production is live at `https://nexefiy.vercel.app` (2026-10-25, `bf34723`)** but only signed-out checks have run, and it uses the development Supabase project. The earlier failed attempt (`main` @ Phase 6) was caused by `NEXT_PUBLIC_APP_URL` missing in Production, now set.
 - Preview `8b08b2b` was opened (browser signed in to Vercel) on 2026-10-20: public pages pass, but every session route returned 500 because `src/lib/env/public.ts` required `NEXT_PUBLIC_APP_URL` on Previews. Fixed in `4a58a63`; on its Preview (2026-10-25) every signed-out check passes. No account was created on a Preview, so sign-up/sign-in and the signed-in app were not exercised.
 - Supabase Auth Site URL / Redirect URLs were not read (no tool exposes them).
 
