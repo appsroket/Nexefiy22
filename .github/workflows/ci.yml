@@ -31,6 +31,8 @@ jobs:
       # Placeholders in the shape src/lib/env expects (as in tests/helpers/env-fixtures.ts).
       NEXT_PUBLIC_SUPABASE_URL: https://example-ref.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ffffffffffffffffffffffffffffffff
+      # `next build` resolves APP_ENV to production, which requires the app URL.
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v5
