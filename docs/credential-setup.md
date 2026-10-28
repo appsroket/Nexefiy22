@@ -40,19 +40,19 @@ After changing Vercel variables, **redeploy** — values are read at build/start
 
 ## URLs to register with providers
 
-Replace `{APP_URL}` with the environment's `NEXT_PUBLIC_APP_URL`. `npm run env:check` prints the exact list for the current environment. Paths are defined in `src/lib/config/endpoints.ts`; the routes are implemented in later phases.
+Replace `{APP_URL}` with the environment's `NEXT_PUBLIC_APP_URL`. `npm run env:check` prints the exact list for the current environment. Paths are defined in `src/lib/config/endpoints.ts`; `tests/app/endpoints.test.ts` checks that every path marked built has a route. **Register only built paths** — the others answer 404 until their feature ships (2026-10-29).
 
-| Provider | What | URL |
-|---|---|---|
-| Supabase Auth | Redirect URL (allow list) | `{APP_URL}/auth/callback` |
-| Google | OAuth authorized redirect URI | `{APP_URL}/api/integrations/google/callback` |
-| Google | Gmail push (Pub/Sub push endpoint) | `{APP_URL}/api/webhooks/google` |
-| Slack | OAuth redirect URL | `{APP_URL}/api/integrations/slack/callback` |
-| Slack | Event Subscriptions request URL | `{APP_URL}/api/webhooks/slack` |
-| HubSpot | OAuth redirect URL | `{APP_URL}/api/integrations/hubspot/callback` |
-| HubSpot | Webhook target URL | `{APP_URL}/api/webhooks/hubspot` |
-| Stripe | Webhook endpoint | `{APP_URL}/api/webhooks/stripe` |
-| Vercel Cron | Job paths | `/api/cron/<job>` (in `vercel.json`) |
+| Provider | What | URL | Route |
+|---|---|---|---|
+| Supabase Auth | Redirect URL (allow list) | `{APP_URL}/auth/callback` | built |
+| Google | OAuth authorized redirect URI | `{APP_URL}/api/integrations/google/callback` | not built (no Google connector) |
+| Google | Gmail push (Pub/Sub push endpoint) | `{APP_URL}/api/webhooks/google` | not built |
+| Slack | OAuth redirect URL | `{APP_URL}/api/integrations/slack/callback` | built |
+| Slack | Event Subscriptions request URL | `{APP_URL}/api/webhooks/slack` | not built (no inbound webhooks) |
+| HubSpot | OAuth redirect URL | `{APP_URL}/api/integrations/hubspot/callback` | built |
+| HubSpot | Webhook target URL | `{APP_URL}/api/webhooks/hubspot` | not built (no inbound webhooks) |
+| Stripe | Webhook endpoint | `{APP_URL}/api/webhooks/stripe` | not built (billing on hold) |
+| Vercel Cron | Job paths | `/api/cron/<job>` (in `vercel.json`) | built |
 
 Slack and Stripe webhooks need a publicly reachable HTTPS URL. Locally, use `stripe listen` (below) for Stripe and a tunnel (e.g. `cloudflared tunnel` or `ngrok`) for Slack.
 

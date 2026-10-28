@@ -54,7 +54,7 @@ export default async function OverviewPage() {
     getWorkspaceSummary(workspace.organizationId),
     getOnboardingFacts(workspace.organizationId, workspace.role, Boolean(user.fullName)),
   ])
-  const progress = onboardingProgress(facts)
+  const progress = onboardingProgress({ ...facts, hasEmployee: summary.employees > 0, hasConnectedApp: summary.connectedApps > 0 })
   const pendingApprovals = context.status === 'signed_in' ? context.notifications.total : 0
   const article = /^[aeiou]/i.test(roleLabel(workspace.role)) ? 'an' : 'a'
 
@@ -76,8 +76,11 @@ export default async function OverviewPage() {
           <MetricCard icon={Plug} label="Connected apps" value={summary.connectedApps} />
         </div>
         <p className="text-xs text-muted-foreground">
-          Counts come directly from your workspace. Outcome and cost reporting will appear in Analytics once it’s
-          available.
+          Counts come directly from your workspace. Task results, verified completion, outcomes and cost are in{' '}
+          <Link href="/app/analytics" className="text-amethyst underline-offset-4 hover:underline">
+            Analytics
+          </Link>
+          .
         </p>
       </section>
       <SectionsGuide />

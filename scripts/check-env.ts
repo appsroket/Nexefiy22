@@ -229,8 +229,12 @@ async function main(): Promise<number> {
   )
 
   console.log(`\nURLs to register with providers for ${snapshot.env.core.appUrl}:`)
-  for (const endpoint of PROVIDER_ENDPOINTS) {
+  for (const endpoint of PROVIDER_ENDPOINTS.filter((e) => e.built)) {
     console.log(`  ${`${endpoint.provider} ${endpoint.kind}`.padEnd(46)} ${absoluteUrl(snapshot.env.core.appUrl, endpoint.path)}`)
+  }
+  console.log('Reserved, not built yet (they answer 404; don’t register them):')
+  for (const endpoint of PROVIDER_ENDPOINTS.filter((e) => !e.built)) {
+    console.log(`  ${`${endpoint.provider} ${endpoint.kind}`.padEnd(46)} ${endpoint.path}`)
   }
 
   let exitCode = 0

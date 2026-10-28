@@ -42,7 +42,7 @@ URL Configuration isn't readable with the tools used so far, so check it by hand
 - The app sends email links to `/auth/callback` (PKCE: sign-in links and password reset) and `/auth/confirm` (token hash); see `src/lib/config/endpoints.ts`. If a host is missing from Redirect URLs, Supabase falls back to the Site URL.
 - Vercel side: [production-deployment.md §6](production-deployment.md#6-supabase-for-each-environment).
 - Email confirmations: on — `accept_invitation()` requires a confirmed email. Custom SMTP via Resend before launch — settings in [credential-setup.md](credential-setup.md#c-email-resend).
-- Minimum password length 10; leaked-password protection on (if available on plan).
+- Minimum password length 10; leaked-password protection should be on (if available on the plan). **The security advisor reported it disabled on the dev project on 2026-10-29.**
 
 ## Storage
 

@@ -126,7 +126,7 @@ export async function getOnboardingFacts(
   organizationId: string,
   role: OrganizationRole,
   hasName: boolean,
-): Promise<OnboardingFacts> {
+): Promise<Omit<OnboardingFacts, 'hasEmployee' | 'hasConnectedApp'>> {
   const supabase = await createUserClient()
   const [company, members, invitations] = await Promise.all([
     supabase

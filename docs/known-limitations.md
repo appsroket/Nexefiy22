@@ -2,6 +2,16 @@
 
 Honest list of what does not exist or is unverified. Update every phase.
 
+## Functional reality audit (2026-10-29)
+
+Feature-by-feature status with evidence: [functional-reality-audit.md](functional-reality-audit.md); ordered fixes: [implementation-remediation-plan.md](implementation-remediation-plan.md).
+
+- **Verified live:** the website and deployment; one account signed up, confirmed its email, signed in and created a workspace against the dev project on 2026-10-25 (rows and 4 trigger-written audit entries; host not recorded); RLS on all 42 tables.
+- **Never run:** any model call, employee, task, tool execution, integration connection, workflow run or usage record (all counts 0). Cron routes answer 503 in production (`CRON_SECRET` unset); Trigger.dev has no project.
+- **Missing foundations:** notifications, deliverable files and storage, inbound webhooks and event triggers, chat, billing, error monitoring, CI, signed-in end-to-end tests.
+- **Leaked-password protection is off** in Supabase Auth (security advisor).
+- Fixed by the audit: the onboarding checklist and overview called built features unavailable; `env:check` listed five provider URLs with no route as URLs to register.
+
 ## Deployment readiness (2026-10-19)
 
 Details: [production-deployment.md](production-deployment.md).

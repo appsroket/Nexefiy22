@@ -222,14 +222,23 @@ describe('invitations', () => {
 })
 
 describe('onboarding progress', () => {
-  it('counts only steps that can be done today, and only for roles that can do them', () => {
-    const owner = onboardingProgress({ role: 'owner', hasName: true, hasCompanyDetails: false, hasInvitedSomeone: true })
-    expect(owner.steps.map((step) => step.id)).toEqual(['workspace', 'profile', 'company', 'team', 'employee', 'integration'])
-    expect([owner.completed, owner.total]).toEqual([3, 4])
-    expect(owner.steps.filter((step) => step.status === 'planned').map((step) => step.id)).toEqual(['employee', 'integration'])
+  const base = { hasName: true, hasCompanyDetails: false, hasInvitedSomeone: true, hasEmployee: false, hasConnectedApp: false }
 
-    const viewer = onboardingProgress({ role: 'viewer', hasName: false, hasCompanyDetails: true, hasInvitedSomeone: true })
-    expect(viewer.steps.map((step) => step.id)).toEqual(['workspace', 'profile', 'employee', 'integration'])
+  it('counts real workspace facts, and only shows steps the role can do', () => {
+    const owner = onboardingProgress({ ...base, role: 'owner' })
+    expect(owner.steps.map((step) => step.id)).toEqual(['workspace', 'profile', 'company', 'team', 'employee', 'integration'])
+    expect([owner.completed, owner.total]).toEqual([3, 6])
+    expect(owner.steps.filter((step) => step.status === 'planned')).toEqual([])
+
+    const done = onboardingProgress({ ...base, role: 'admin', hasCompanyDetails: true, hasEmployee: true, hasConnectedApp: true })
+    expect([done.completed, done.total]).toEqual([6, 6])
+
+    const operator = onboardingProgress({ ...base, role: 'operator', hasEmployee: true })
+    expect(operator.steps.map((step) => step.id)).toEqual(['workspace', 'profile', 'employee'])
+    expect([operator.completed, operator.total]).toEqual([3, 3])
+
+    const viewer = onboardingProgress({ ...base, role: 'viewer', hasName: false })
+    expect(viewer.steps.map((step) => step.id)).toEqual(['workspace', 'profile'])
     expect([viewer.completed, viewer.total]).toEqual([1, 2])
   })
 })
