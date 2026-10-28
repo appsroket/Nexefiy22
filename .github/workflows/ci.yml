@@ -1,0 +1,73 @@
+# Continuous integration (docs/implementation-remediation-plan.md, WP-1).
+#
+# checks:   typecheck, lint, Vitest, production build, browser-bundle secret scan.
+# database: every migration on a throwaway PostgreSQL 16 (Supabase stand-in),
+#           then pgTAP and tests/integration (npm run db:test:local).
+#
+# No secrets: the build uses well-formed placeholder public values, and nothing
+# here reaches a hosted Supabase project, Vercel or any provider.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests, build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # Placeholders in the shape src/lib/env expects (as in tests/helpers/env-fixtures.ts).
+      NEXT_PUBLIC_SUPABASE_URL: https://example-ref.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ffffffffffffffffffffffffffffffff
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:bundle
+      - name: Audit production dependencies (report only)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+  database:
+    name: Migrations, pgTAP, integration tests (PostgreSQL 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PG_BIN: /usr/lib/postgresql/16/bin
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install PostgreSQL 16, pgvector, pgTAP, plpython3u
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-16 postgresql-16-pgvector postgresql-16-pgtap \
+            postgresql-plpython3-16 python3-jsonschema libtap-parser-sourcehandler-pgtap-perl
+      - name: Install the pg_jsonschema stand-in
+        run: sudo cp supabase/local/pg_jsonschema.control supabase/local/pg_jsonschema--0.0.1.sql "$("$PG_BIN/pg_config" --sharedir)/extension/"
+      - run: npm run db:test:local

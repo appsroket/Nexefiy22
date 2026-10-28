@@ -55,6 +55,26 @@ describe('vercel.json', () => {
   })
 })
 
+describe('CI workflow', () => {
+  const workflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8')
+
+  it.each(['npm ci', 'npm run typecheck', 'npm run lint', 'npm test', 'npm run build', 'npm run check:bundle', 'npm run db:test:local'])(
+    'runs %s',
+    (command) => {
+      expect(workflow).toMatch(new RegExp(`^\\s+- run: ${command}$`, 'm'))
+    },
+  )
+
+  it('uses no secrets and only reads the repository', () => {
+    expect(workflow).not.toContain('secrets.')
+    expect(workflow).toMatch(/^permissions:\n {2}contents: read$/m)
+  })
+
+  it('uses the pinned Node version', () => {
+    expect(workflow.match(/node-version: (\d+)/g)?.every((line) => line.endsWith('24'))).toBe(true)
+  })
+})
+
 describe('runtime', () => {
   it('pins Node 24', () => {
     const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { engines: { node: string } }
